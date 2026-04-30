@@ -1,3 +1,5 @@
+"""Test helpers for this repository."""
+
 def exec_test(*, rule, name, tags = [], args = [], env = {}, data = [], tools = [], **kwargs):
     rule(
         name = name + "_",

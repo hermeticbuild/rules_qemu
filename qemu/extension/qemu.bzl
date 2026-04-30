@@ -1,3 +1,5 @@
+"""Module extension for QEMU user-mode prebuilts."""
+
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

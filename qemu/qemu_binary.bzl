@@ -1,3 +1,5 @@
+"""Rules for running target binaries through QEMU user-mode emulators."""
+
 load("@bazel_lib//lib:transitions.bzl", "platform_transition_binary")
 load("@hermetic_launcher//launcher:lib.bzl", "launcher")
 

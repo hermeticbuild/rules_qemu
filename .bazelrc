@@ -29,6 +29,12 @@ common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 common --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
 common --repo_env=BAZEL_DO_NOT_DETECT_SWIFT_TOOLCHAIN=1
 
+common:bcr --experimental_remote_downloader=
+common:bcr --remote_cache=
+common:bcr --remote_executor=
+common:bcr --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
+common:bcr --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=0
+
 common --experimental_cc_static_library
 common --experimental_platform_in_output_dir
 

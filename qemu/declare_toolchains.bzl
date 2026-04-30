@@ -1,3 +1,5 @@
+"""Helpers for declaring QEMU user-mode toolchains."""
+
 load("//qemu:qemu_toolchain.bzl", "qemu_toolchain")
 
 EXEC_PLATFORM_TO_REPO_ARCH = {
@@ -19,7 +21,15 @@ TARGET_PLATFORM_TO_QEMU_ARCH = {
     ("linux", "x86_64"): "x86_64",
 }
 
+# buildifier: disable=unnamed-macro
 def declare_toolchains(*, exec_platforms, target_platforms):
+    """Declares QEMU toolchains for exec and target platform pairs.
+
+    Args:
+        exec_platforms: Iterable of `(os, cpu)` pairs for the execution platform.
+        target_platforms: Iterable of `(os, cpu)` pairs for emulated target platforms.
+    """
+
     for exec_platform in exec_platforms:
         exec_os, exec_cpu = exec_platform
         repo_arch = EXEC_PLATFORM_TO_REPO_ARCH[exec_platform]

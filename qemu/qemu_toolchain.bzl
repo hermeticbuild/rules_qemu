@@ -1,3 +1,5 @@
+"""Toolchain rule for QEMU user-mode emulator binaries."""
+
 QemuUserToolchainInfo = provider(
     doc = "QEMU user-mode emulator toolchain.",
     fields = {

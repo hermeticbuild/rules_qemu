@@ -1,0 +1,31 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "qemu_binary",
+    srcs = ["qemu_binary.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_lib//lib:transitions",
+        "@hermetic_launcher//launcher:lib_bzl",
+    ],
+)
+
+bzl_library(
+    name = "qemu_toolchain",
+    srcs = ["qemu_toolchain.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "declare_toolchains",
+    srcs = ["declare_toolchains.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":qemu_toolchain",
+    ],
+)

@@ -10,39 +10,74 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 jobs:
   build:
-    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.4.0
-    with:
-      bazel_versions: |
-        ["8.x", "9.x"]
-      folders: |
-        [
-          "."
-        ]
-      bazel_test_command: bazel build //...
-      exclude_windows: true
-      exclude: |
-        [
-          {"bzlmodEnabled": false},
-          {"os": "macos-latest"},
-          {"os": "windows-latest"}
-        ]
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel_version: ["8.x", "9.x"]
+    runs-on: ubuntu-latest
+    name: Build root with Bazel ${{ matrix.bazel_version }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Mount Bazel caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-repo
+          key: bazel-cache-ubuntu-latest-${{ matrix.bazel_version }}-root-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'MODULE.bazel') }}
+          restore-keys: |
+            bazel-cache-ubuntu-latest-${{ matrix.bazel_version }}-root
+      - name: bazel build //...
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+        shell: bash
+        run: |
+          REMOTE_HEADER_ARGS=()
+          if [[ -n "${BUILDBUDDY_API_KEY:-}" ]]; then
+            REMOTE_HEADER_ARGS=(--remote_header="x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}")
+          fi
+
+          bazel \
+            --bazelrc="$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc" \
+            --bazelrc=.bazelrc \
+            build \
+            "${REMOTE_HEADER_ARGS[@]}" \
+            //...
   test:
-    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.4.0
-    with:
-      bazel_versions: |
-        ["8.x", "9.x"]
-      folders: |
-        [
-          "e2e/smoke"
-        ]
-      bazel_test_command: bazel test //...
-      exclude_windows: true
-      exclude: |
-        [
-          {"bzlmodEnabled": false},
-          {"os": "macos-latest"},
-          {"os": "windows-latest"}
-        ]
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel_version: ["8.x", "9.x"]
+    runs-on: ubuntu-latest
+    name: Test smoke with Bazel ${{ matrix.bazel_version }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Mount Bazel caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-repo
+          key: bazel-cache-ubuntu-latest-${{ matrix.bazel_version }}-smoke-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'MODULE.bazel', 'e2e/smoke/MODULE.bazel') }}
+          restore-keys: |
+            bazel-cache-ubuntu-latest-${{ matrix.bazel_version }}-smoke
+      - name: bazel test //...
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+        working-directory: e2e/smoke
+        shell: bash
+        run: |
+          REMOTE_HEADER_ARGS=()
+          if [[ -n "${BUILDBUDDY_API_KEY:-}" ]]; then
+            REMOTE_HEADER_ARGS=(--remote_header="x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}")
+          fi
+
+          bazel \
+            --bazelrc="$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc" \
+            --bazelrc=.bazelrc \
+            test \
+            "${REMOTE_HEADER_ARGS[@]}" \
+            //...
   pre-commit:
     runs-on: ubuntu-latest
     steps:

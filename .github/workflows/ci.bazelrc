@@ -1,0 +1,12 @@
+# This file contains Bazel settings to apply on CI only.
+common --config=ci
+
+# Enable remote execution on CI by default.
+common --config=remote
+
+# This directory is configured in GitHub Actions to be persisted between runs.
+common --repository_cache=~/.cache/bazel-repo
+common --repo_contents_cache=~/.cache/bazel-repo/contents
+
+# Keep CI downloads small; Bazel will fetch requested outputs when needed.
+common --remote_download_outputs=minimal

@@ -9,6 +9,23 @@ concurrency:
   group: concurrency-group::${{ github.workflow }}::${{ github.event.pull_request.number > 0 && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}${{ github.ref_name == 'main' && format('::{0}', github.run_id) || ''}}
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 jobs:
+  build:
+    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.4.0
+    with:
+      bazel_versions: |
+        ["8.x", "9.x"]
+      folders: |
+        [
+          "."
+        ]
+      bazel_test_command: bazel build //...
+      exclude_windows: true
+      exclude: |
+        [
+          {"bzlmodEnabled": false},
+          {"os": "macos-latest"},
+          {"os": "windows-latest"}
+        ]
   test:
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.4.0
     with:
@@ -16,7 +33,6 @@ jobs:
         ["8.x", "9.x"]
       folders: |
         [
-          ".",
           "e2e/smoke"
         ]
       bazel_test_command: bazel test //...
@@ -33,7 +49,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: pre-commit/action@v3.0.1
   conclusion:
-    needs: [test, pre-commit]
+    needs: [build, test, pre-commit]
     runs-on: ubuntu-latest
     if: always()
     steps:

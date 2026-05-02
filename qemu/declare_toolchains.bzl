@@ -54,6 +54,6 @@ def declare_toolchains(*, exec_platforms, target_platforms):
                     "@platforms//os:{}".format(target_os),
                     "@platforms//cpu:{}".format(target_cpu),
                 ],
-                toolchain = ":" + name + "_impl",
+                toolchain = name + "_impl",
                 toolchain_type = "@rules_qemu//qemu:toolchain_type",
             )

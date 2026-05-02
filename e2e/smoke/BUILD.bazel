@@ -1,5 +1,4 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_qemu//:defs.bzl", "exec_test")
 load("@rules_qemu//qemu:qemu_binary.bzl", "qemu_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
@@ -25,7 +24,7 @@ SMOKE_PLATFORMS = {
 ]
 
 [
-    exec_test(
+    sh_test(
         name = "hello_{}_qemu_test".format(name),
         srcs = ["test_hello_qemu.sh"],
         data = [":hello_{}".format(name)],
@@ -33,7 +32,6 @@ SMOKE_PLATFORMS = {
             "BINARY": "$(rootpath :hello_{})".format(name),
             "EXPECTED_OUTPUT": "Hello, QEMU!",
         },
-        rule = sh_test,
         tags = ["no-remote"],
     )
     for name in SMOKE_PLATFORMS
@@ -46,7 +44,7 @@ qemu_binary(
     target_platform = "@llvm//platforms:linux_x86_64",
 )
 
-exec_test(
+sh_test(
     name = "hello_x86_64_qemu_test",
     srcs = ["test_hello_qemu.sh"],
     data = [":hello_x86_64"],
@@ -54,7 +52,6 @@ exec_test(
         "BINARY": "$(rootpath :hello_x86_64)",
         "EXPECTED_OUTPUT": "Hello, QEMU!",
     },
-    rule = sh_test,
     tags = [
         "manual",
         "no-remote",
@@ -68,7 +65,7 @@ qemu_binary(
     target_platform = "@llvm//platforms:linux_aarch64",
 )
 
-exec_test(
+sh_test(
     name = "hello_aarch64_qemu_test",
     srcs = ["test_hello_qemu.sh"],
     data = [":hello_aarch64"],
@@ -76,7 +73,6 @@ exec_test(
         "BINARY": "$(rootpath :hello_aarch64)",
         "EXPECTED_OUTPUT": "Hello, QEMU!",
     },
-    rule = sh_test,
     tags = [
         "manual",
         "no-remote",

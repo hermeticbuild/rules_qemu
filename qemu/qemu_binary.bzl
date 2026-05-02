@@ -70,7 +70,7 @@ def qemu_binary(name, binary, target_platform, testonly = False, **kwargs):
 
     platform_transition_binary(
         name = name,
-        binary = ":" + name + "_raw",
+        binary = name + "_raw",
         target_platform = target_platform,
         testonly = testonly,
         **kwargs

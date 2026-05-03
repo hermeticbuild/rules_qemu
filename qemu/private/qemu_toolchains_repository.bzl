@@ -1,3 +1,5 @@
+"""Repository for QEMU toolchains."""
+
 _TOOLCHAINS_BUILD = """\
 load("@rules_qemu//qemu:declare_toolchains.bzl", "declare_toolchains")
 

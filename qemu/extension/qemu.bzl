@@ -2,6 +2,7 @@
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_toolchains_repository")
 
 QEMU_VERSION = "11.0.0"
 
@@ -28,36 +29,6 @@ QEMU_RELEASES = {
     ("arm64", "x86_64"): "eca6fadce7ccf8d572216c78c6cf3124e49fafae625c80251ec7cac6bac7c250",
 }
 
-_TOOLCHAINS_BUILD = """\
-load("@rules_qemu//qemu:declare_toolchains.bzl", "declare_toolchains")
-
-package(default_visibility = ["//visibility:public"])
-
-EXEC_PLATFORMS = [
-    ("linux", "x86_64"),
-    ("linux", "aarch64"),
-]
-
-TARGET_PLATFORMS = [
-    ("linux", "aarch64"),
-    ("linux", "arm"),
-    ("linux", "i386"),
-    ("linux", "mips64"),
-    ("linux", "ppc"),
-    ("linux", "ppc64le"),
-    ("linux", "riscv32"),
-    ("linux", "riscv64"),
-    ("linux", "s390x"),
-    ("linux", "x86_32"),
-    ("linux", "x86_64"),
-]
-
-declare_toolchains(
-    exec_platforms = EXEC_PLATFORMS,
-    target_platforms = TARGET_PLATFORMS,
-)
-"""
-
 _QEMU_BINARY_BUILD = """\
 package(default_visibility = ["//visibility:public"])
 
@@ -68,13 +39,6 @@ filegroup(
     srcs = ["{file}"],
 )
 """
-
-def _qemu_toolchains_repository_impl(repository_ctx):
-    repository_ctx.file("BUILD.bazel", _TOOLCHAINS_BUILD)
-
-_qemu_toolchains_repository = repository_rule(
-    implementation = _qemu_toolchains_repository_impl,
-)
 
 def _qemu_impl(module_ctx):
     """Implementation of the QEMU user-mode prebuilt module extension."""
@@ -95,7 +59,7 @@ def _qemu_impl(module_ctx):
             )],
         )
 
-    _qemu_toolchains_repository(name = "qemu_user_toolchains")
+    qemu_toolchains_repository(name = "qemu_user_toolchains")
 
     metadata_kwargs = {}
     if bazel_features.external_deps.extension_metadata_has_reproducible:

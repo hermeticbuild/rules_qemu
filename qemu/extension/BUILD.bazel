@@ -5,6 +5,7 @@ bzl_library(
     srcs = ["qemu.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//qemu/private:qemu_toolchains_repository",
         "@bazel_features//:features",
         "@bazel_tools//tools/build_defs/repo:cache.bzl",
         "@bazel_tools//tools/build_defs/repo:http.bzl",

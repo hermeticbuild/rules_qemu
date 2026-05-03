@@ -1,7 +1,8 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+
 package(default_visibility = ["//qemu:__subpackages__"])
 
 bzl_library(
     name = "qemu_toolchains_repository",
     srcs = ["qemu_toolchains_repository.bzl"],
-    visibility = ["//visibility:public"],
 )

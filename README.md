@@ -26,6 +26,7 @@ Emulated Linux target CPUs:
 - `i386`
 - `mips64`
 - `ppc`
+- `ppc32` (uses `qemu-ppc`)
 - `ppc64le`
 - `riscv32`
 - `riscv64`

@@ -17,6 +17,7 @@ TARGET_PLATFORMS = [
     ("linux", "i386"),
     ("linux", "mips64"),
     ("linux", "ppc"),
+    ("linux", "ppc32"),
     ("linux", "ppc64le"),
     ("linux", "riscv32"),
     ("linux", "riscv64"),

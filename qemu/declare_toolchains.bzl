@@ -14,6 +14,7 @@ TARGET_PLATFORM_TO_QEMU_ARCH = {
     ("linux", "i386"): "i386",
     ("linux", "mips64"): "mips64",
     ("linux", "ppc"): "ppc",
+    ("linux", "ppc32"): "ppc",
     ("linux", "ppc64le"): "ppc64le",
     ("linux", "riscv32"): "riscv32",
     ("linux", "riscv64"): "riscv64",

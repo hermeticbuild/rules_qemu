@@ -22,6 +22,7 @@ Emulated Linux target CPUs:
 
 - `aarch64`
 - `arm`
+- `armv7` (uses `qemu-arm`; set QEMU CPU environment as needed)
 - `i386`
 - `mips64`
 - `ppc`

@@ -10,6 +10,7 @@ EXEC_PLATFORM_TO_REPO_ARCH = {
 TARGET_PLATFORM_TO_QEMU_ARCH = {
     ("linux", "aarch64"): "aarch64",
     ("linux", "arm"): "arm",
+    ("linux", "armv7"): "arm",
     ("linux", "i386"): "i386",
     ("linux", "mips64"): "mips64",
     ("linux", "ppc"): "ppc",

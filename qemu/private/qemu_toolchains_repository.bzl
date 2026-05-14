@@ -13,6 +13,7 @@ EXEC_PLATFORMS = [
 TARGET_PLATFORMS = [
     ("linux", "aarch64"),
     ("linux", "arm"),
+    ("linux", "armv7"),
     ("linux", "i386"),
     ("linux", "mips64"),
     ("linux", "ppc"),

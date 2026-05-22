@@ -83,8 +83,7 @@ def main():
     config = load_config(sys.argv[1])
     qemu_system = rlocation(config["qemu_system"])
     qemu_img = rlocation(config["qemu_img"])
-    system_data_anchor = rlocation(config["system_data_anchor"])
-    system_data_dir = os.path.dirname(system_data_anchor)
+    system_data_dir = rlocation(config["system_data_anchor"])
 
     tmpdir = os.environ.get("TEST_TMPDIR") or tempfile.mkdtemp(prefix="qemu-system-smoke-")
     image = os.path.join(tmpdir, "disk.qcow2")

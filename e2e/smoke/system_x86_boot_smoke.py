@@ -170,8 +170,7 @@ def main():
         raise RuntimeError("x86 boot smoke requires x86_64-softmmu, got {}".format(config["system_target"]))
 
     qemu_system = rlocation(config["qemu_system"])
-    system_data_anchor = rlocation(config["system_data_anchor"])
-    system_data_dir = os.path.dirname(system_data_anchor)
+    system_data_dir = rlocation(config["system_data_anchor"])
 
     tmpdir = os.environ.get("TEST_TMPDIR") or tempfile.mkdtemp(prefix="qemu-system-boot-")
     image = os.path.join(tmpdir, "boot.img")

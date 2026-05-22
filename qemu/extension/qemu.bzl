@@ -101,16 +101,11 @@ filegroup(
 _QEMU_SYSTEM_DATA_BUILD = """\
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["share/qemu/bios.bin"])
+exports_files(["share/qemu"])
 
 filegroup(
     name = "qemu-system-data",
-    srcs = glob(["share/qemu/**"]),
-)
-
-filegroup(
-    name = "system-data-anchor",
-    srcs = ["share/qemu/bios.bin"],
+    srcs = ["share/qemu"],
 )
 """
 

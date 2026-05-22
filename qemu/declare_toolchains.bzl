@@ -154,7 +154,7 @@ def declare_system_toolchains(*, exec_platforms, target_platforms):
                 qemu_img = "@qemu_img_prebuilt_linux_{}//:qemu-img".format(repo_arch),
                 qemu_system = "@qemu_system_bin_prebuilt_linux_{}_{}//:{}".format(repo_arch, repo_system_target, qemu_system.binary),
                 system_data = "@qemu_system_data_prebuilt_linux_{}//:qemu-system-data".format(repo_arch),
-                system_data_anchor = "@qemu_system_data_prebuilt_linux_{}//:system-data-anchor".format(repo_arch),
+                system_data_anchor = "@qemu_system_data_prebuilt_linux_{}//:qemu-system-data".format(repo_arch),
                 system_target = qemu_system.system_target,
                 target_arch = target_cpu,
             )

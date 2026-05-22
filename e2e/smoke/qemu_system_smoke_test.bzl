@@ -45,7 +45,7 @@ _qemu_system_qmp_smoke_config = rule(
     toolchains = [_QEMU_SYSTEM_TOOLCHAIN_TYPE],
 )
 
-def qemu_system_qmp_smoke_test(name, **kwargs):
+def _qemu_system_smoke_test(name, *, script, **kwargs):
     config_name = name + "_config"
     _qemu_system_qmp_smoke_config(
         name = config_name,
@@ -54,13 +54,27 @@ def qemu_system_qmp_smoke_test(name, **kwargs):
 
     py_test(
         name = name,
-        srcs = ["system_qmp_smoke.py"],
+        srcs = [script],
         args = ["$(rootpath :{})".format(config_name)],
         config_settings = {
             "@rules_python//python/config_settings:bootstrap_impl": "script",
         },
         data = [":{}".format(config_name)],
-        main = "system_qmp_smoke.py",
+        main = script,
         python_version = "3.12",
+        **kwargs
+    )
+
+def qemu_system_qmp_smoke_test(name, **kwargs):
+    _qemu_system_smoke_test(
+        name = name,
+        script = "system_qmp_smoke.py",
+        **kwargs
+    )
+
+def qemu_system_x86_boot_smoke_test(name, **kwargs):
+    _qemu_system_smoke_test(
+        name = name,
+        script = "system_x86_boot_smoke.py",
         **kwargs
     )

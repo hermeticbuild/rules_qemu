@@ -1,7 +1,7 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_qemu//qemu:qemu_binary.bzl", "qemu_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":qemu_system_smoke_test.bzl", "qemu_system_qmp_smoke_test")
+load(":qemu_system_smoke_test.bzl", "qemu_system_qmp_smoke_test", "qemu_system_x86_boot_smoke_test")
 
 cc_binary(
     name = "hello",
@@ -87,9 +87,14 @@ test_suite(
         for name in SMOKE_PLATFORMS
     ] + [
         ":qemu_system_qmp_smoke_test",
+        ":qemu_system_x86_boot_smoke_test",
     ],
 )
 
 qemu_system_qmp_smoke_test(
     name = "qemu_system_qmp_smoke_test",
+)
+
+qemu_system_x86_boot_smoke_test(
+    name = "qemu_system_x86_boot_smoke_test",
 )

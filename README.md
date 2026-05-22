@@ -8,8 +8,9 @@ supporting calling rules for the QEMU family, including `qemu-user`,
 `qemu-system`, and `qemu-img`. Today, only `qemu-user` is supported.
 
 The current `qemu-user` toolchains are backed by static Linux prebuilts from
-[`hermeticbuild/qemu-user-prebuilt`](https://github.com/hermeticbuild/qemu-user-prebuilt),
-which publishes static `qemu-user` binaries for many QEMU versions.
+[`hermeticbuild/qemu-prebuilt`](https://github.com/hermeticbuild/qemu-prebuilt),
+which publishes static QEMU user-mode, system-mode, `qemu-img`, and runtime
+data artifacts.
 
 ## Current Support
 
@@ -38,7 +39,8 @@ Current limitations:
 
 - Only Linux `qemu-user` toolchains are registered.
 - `qemu-system` and `qemu-img` rules/toolchains are planned but not implemented.
-- The default module extension currently downloads QEMU `11.0.0` prebuilts.
+- The default module extension currently downloads QEMU `11.0.0` user-mode
+  prebuilts from qemu-prebuilt release/artifact version `11.0.0.0`.
 
 ## Installation
 

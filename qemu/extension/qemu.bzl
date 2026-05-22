@@ -5,28 +5,31 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_toolchains_repository")
 
 QEMU_VERSION = "11.0.0"
+QEMU_PREBUILT_RELEASE = "11.0.0.0"
+QEMU_PREBUILT_ARTIFACT_VERSION = "11.0.0.0"
+QEMU_PREBUILT_REPOSITORY = "hermeticbuild/qemu-prebuilt"
 
 QEMU_RELEASES = {
-    ("amd64", "aarch64"): "073f3afd4354c562aa2a0570cb0ce5b72b291a09769bcc90be026bbc155bd3f0",
-    ("amd64", "arm"): "cd8a1ebce2262d21c75aee8867223c893980506b815247fedb10e7a6ccfe2a78",
-    ("amd64", "i386"): "ebaf168f9bd1dc133d76875b9c9c6b723728d0c87a29bed6441a4174cefa5ee3",
-    ("amd64", "mips64"): "1ba66799e09bcc59fb4502bc02a4ac8e60457954e0341ac0c44319e3bd8d5010",
-    ("amd64", "ppc"): "099488f83f169912a70bf6cdaed6a43c858b407616588859d8ef8c605e9d9c37",
-    ("amd64", "ppc64le"): "79da4873694daa49a779c066c3cea73e65da75fc3c83fcff73b9a614f6181dad",
-    ("amd64", "riscv32"): "851713d19f379a5846c1e9063057d70f3a6f4d9140e158e7f002831fc9c41e36",
-    ("amd64", "riscv64"): "b24eb60d33ce5d77d5b97ed85713dd4ff18c3366e35eba452781448f92ef3515",
-    ("amd64", "s390x"): "8735feb8c7bbc64e755966150d3c52080e8aacf4a7a0a3d026b2c796988875c8",
-    ("amd64", "x86_64"): "5a95c100c857e0f0a9732c940ce92b4e38e6d86365685d36c2fe69db13669a1f",
-    ("arm64", "aarch64"): "368cbb5fcb21f7cc0558115283103a600e70c145c81506b02b6255798d1a1f35",
-    ("arm64", "arm"): "e81a4ed7b8817187c2184520d573b5089661c7457d46d35a19511eb5c99f50d1",
-    ("arm64", "i386"): "d2433cd1b965ed59e76af06840cc8367f9b60a5ec25c9cf889edc1f302c046b9",
-    ("arm64", "mips64"): "e87d521fb9731812eb979f32e943b9e86474fee72153bce603b6929a3bb51f1f",
-    ("arm64", "ppc"): "18608d644675197cf77e03f65bdd99d399509053d900e0f1f76026e9ef855173",
-    ("arm64", "ppc64le"): "49618d23d75b9967ff8ee11f09670f317b937aa8e1cfbffa8ac68ea6df12536a",
-    ("arm64", "riscv32"): "0e6fcf4c2f5afad4b418c3190e559fbb6ac51c2a5427baaf4dd781167ed21ff0",
-    ("arm64", "riscv64"): "9d0a64fececb0fdfb8e48459e956dd41c4ab9a04668459bc9506bda1bf8c698e",
-    ("arm64", "s390x"): "62e828be87518fd2496840ca10ba43fe989fc05c746b93f7ffc0c32703a80568",
-    ("arm64", "x86_64"): "eca6fadce7ccf8d572216c78c6cf3124e49fafae625c80251ec7cac6bac7c250",
+    ("amd64", "aarch64"): "15e4430509291373ecdd5891c463538fbb6e8f11acd88342b109f741d0f37089",
+    ("amd64", "arm"): "31e11ebd288b197f9c846f2eb6fce897d2fe57dee1e0e94b37c91f3116389ffc",
+    ("amd64", "i386"): "f1c7a6e9c40e23aedba0fff2db90c0fa12232c19bcd2f3d515842b9189ed4e9e",
+    ("amd64", "mips64"): "1d31baec7f9630d90d026de3b0f27821ce2db42211ca57af4f334cf4d6ad0ebe",
+    ("amd64", "ppc"): "6f814714b06b292ff3fcc61cfb563a7abff11a08a4bd33bba9ceabf3c796bc58",
+    ("amd64", "ppc64le"): "fbc637e430067871980ce50cabaef99c9f2b43c72db049e515d567d8378600d8",
+    ("amd64", "riscv32"): "b0ddec8ba3c15adab1926f24d936da34bedfcd265f5ab86d12ac97532e8c67f3",
+    ("amd64", "riscv64"): "df91fa4a2e42ed93f7e341025fae9608b3d79d7af974ffcad31a979eac4e84c3",
+    ("amd64", "s390x"): "c0702c8c4771efeb62715d81c2a4cbe6d5495f491f53de7d3fbadf9f8eccfad2",
+    ("amd64", "x86_64"): "663c75fded5dcb78758f47cd2c4bba1ed37c3a7bf21377f93f6d1b2a9ebefdf5",
+    ("arm64", "aarch64"): "2bd892f0daf464bbfff7d9dfdff207a5111ef63f604331f061d72eafbeb19f82",
+    ("arm64", "arm"): "804dcfab2af29422260e2e897a0aebc315ff8e704894855b4fa7cdeae2b6cd5d",
+    ("arm64", "i386"): "10da56d614893df2f554d5d26cc78bed1d3f5025677491a669281a60c0cbe687",
+    ("arm64", "mips64"): "24e1f6a708f2a91929848c6287e0c22715a669d46877640ead8074c6ca513331",
+    ("arm64", "ppc"): "c610891c5aeec0c21c2b2f2843a3ce810ea80f32abbdcf33447f7839e60b7371",
+    ("arm64", "ppc64le"): "d5cf08c2e8611e3c6a42d43a933ace17171e22cfd0e7f217e2310f810c226260",
+    ("arm64", "riscv32"): "469666b09d2f7145c3061e9e4433f296eb473633f5082915caf144ca2f5f614f",
+    ("arm64", "riscv64"): "960b3818a0ed97ce239af0431f87a019b1b13f6f89b77cb71624bf3ecec27282",
+    ("arm64", "s390x"): "c4d851a896563e57eba42643c96d7090f28675f13183e190655a2908db0d1e50",
+    ("arm64", "x86_64"): "2ddef57cfc09794d4489849298011e64d792f4f5f318b3f07f18245b972e6863",
 }
 
 _QEMU_BINARY_BUILD = """\
@@ -53,9 +56,11 @@ def _qemu_impl(module_ctx):
                 qemu_arch = qemu_arch,
             ),
             sha256 = sha256,
-            urls = ["https://github.com/hermeticbuild/qemu-user-prebuilt/releases/download/{version}/qemu-user-{platform}.tar.zst".format(
+            urls = ["https://github.com/{repository}/releases/download/{release}/qemu-user-{platform}-{version}.tar.zst".format(
                 platform = platform,
-                version = QEMU_VERSION,
+                release = QEMU_PREBUILT_RELEASE,
+                repository = QEMU_PREBUILT_REPOSITORY,
+                version = QEMU_PREBUILT_ARTIFACT_VERSION,
             )],
         )
 

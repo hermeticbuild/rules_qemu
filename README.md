@@ -5,9 +5,9 @@ with hermetic QEMU binaries.
 
 The goal of this project is to provide fully hermetic QEMU toolchains and
 supporting calling rules for the QEMU family, including `qemu-user`,
-`qemu-system`, and `qemu-img`. Today, only `qemu-user` is supported.
+`qemu-system`, and `qemu-img`.
 
-The current `qemu-user` toolchains are backed by static Linux prebuilts from
+The current toolchains are backed by static Linux prebuilts from
 [`hermeticbuild/qemu-prebuilt`](https://github.com/hermeticbuild/qemu-prebuilt),
 which publishes static QEMU user-mode, system-mode, `qemu-img`, and runtime
 data artifacts.
@@ -37,23 +37,32 @@ Emulated Linux target CPUs:
 
 Current limitations:
 
-- Only Linux `qemu-user` toolchains are registered.
-- `qemu-system` and `qemu-img` rules/toolchains are planned but not implemented.
-- The default module extension currently downloads QEMU `11.0.0` user-mode
-  prebuilts from qemu-prebuilt release/artifact version `11.0.0.0`.
+- Linux `qemu-user` toolchains are registered and exposed through
+  `qemu_binary`.
+- Linux `qemu-system` and `qemu-img` toolchains are registered and exposed
+  through providers for rule authors. There is no public VM-launching rule yet.
+- The default module extension currently downloads QEMU `11.0.0` prebuilts
+  from qemu-prebuilt release/artifact version `11.0.0.0`.
 
 ## Installation
 
-Add `rules_qemu` to your `MODULE.bazel` and register the generated QEMU user
+Add `rules_qemu` to your `MODULE.bazel` and register the generated QEMU
 toolchains:
 
 ```starlark
 bazel_dep(name = "rules_qemu", version = "...")
 
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
-use_repo(qemu, "qemu_user_toolchains")
+use_repo(
+    qemu,
+    "qemu_system_toolchains",
+    "qemu_user_toolchains",
+)
 
-register_toolchains("@qemu_user_toolchains//:all")
+register_toolchains(
+    "@qemu_system_toolchains//:all",
+    "@qemu_user_toolchains//:all",
+)
 ```
 
 ## Running A Binary Under QEMU
@@ -98,6 +107,25 @@ For example, on a Linux x86_64 executor, a `target_platform` with
 `@platforms//cpu:riscv64` selects the static `qemu-riscv64` prebuilt for a
 Linux amd64 host.
 
+## QEMU System Toolchains
+
+Rule authors can consume `@rules_qemu//qemu:system_toolchain_type` to access
+hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data.
+
+```starlark
+def _my_rule_impl(ctx):
+    qemu = ctx.toolchains["@rules_qemu//qemu:system_toolchain_type"]
+    qemu_system = qemu.qemu_system
+    qemu_img = qemu.qemu_img
+    system_data_files = qemu.system_data_files
+```
+
+The corresponding `QemuSystemToolchainInfo` provider is available from
+`@rules_qemu//qemu:qemu_system_toolchain.bzl`. It includes the selected
+`qemu-system-*` binary, `qemu-img`, the `share/qemu` data files, a stable data
+anchor file for locating `-L`, and target metadata such as `machine`,
+`system_target`, and `target_arch`.
+
 ## Smoke Test Example
 
 This repository includes an external-consumer smoke test in `e2e/smoke`.
@@ -108,14 +136,14 @@ bazel test //...
 ```
 
 The smoke workspace registers `rules_qemu`, builds simple C binaries for
-multiple target platforms with the published LLVM toolchain, and runs them
-through `qemu_binary`.
+multiple target platforms with the published LLVM toolchain, runs them through
+`qemu_binary`, and starts `qemu-system` through QMP with the hermetic
+`share/qemu` data path.
 
 ## Roadmap
 
 The intended scope is broader than user-mode emulation. Future work should add:
 
-- hermetic `qemu-system` toolchains and calling rules
-- hermetic `qemu-img` toolchains and calling rules
+- public VM-launching rules built on the `qemu-system` toolchain provider
 - version selection for prebuilts exposed through the module extension
 - additional host platforms when static prebuilts are available

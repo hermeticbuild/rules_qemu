@@ -1,6 +1,10 @@
-"""Helpers for declaring QEMU user-mode toolchains."""
+"""Helpers for declaring QEMU toolchains."""
 
-load("//qemu:qemu_system_toolchain.bzl", "qemu_system_toolchain")
+load(
+    "//qemu:qemu_system_toolchain.bzl",
+    "qemu_system_guest_config_setting_name",
+    "qemu_system_toolchain",
+)
 load("//qemu:qemu_toolchain.bzl", "qemu_toolchain")
 
 EXEC_PLATFORM_TO_REPO_ARCH = {
@@ -165,9 +169,8 @@ def declare_system_toolchains(*, exec_platforms, target_platforms):
                     "@platforms//os:{}".format(exec_os),
                     "@platforms//cpu:{}".format(exec_cpu),
                 ],
-                target_compatible_with = [
-                    "@platforms//os:{}".format(target_os),
-                    "@platforms//cpu:{}".format(target_cpu),
+                target_settings = [
+                    "@rules_qemu//qemu:{}".format(qemu_system_guest_config_setting_name(target_os, target_cpu)),
                 ],
                 toolchain = name + "_impl",
                 toolchain_type = "@rules_qemu//qemu:system_toolchain_type",

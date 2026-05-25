@@ -109,21 +109,50 @@ Linux amd64 host.
 
 ## QEMU System Toolchains
 
-Rule authors can consume `@rules_qemu//qemu:system_toolchain_type` to access
-hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data.
+Rule authors can use `qemu_system_resolved_toolchain` to resolve hermetic
+`qemu-system-*`, `qemu-img`, and `share/qemu` runtime data for an explicit QEMU
+guest platform. The helper applies a QEMU-specific transition, so the emulated
+guest platform does not have to be the Bazel target platform of the rule that
+launches QEMU.
 
 ```starlark
+load(
+    "@rules_qemu//qemu:qemu_system_toolchain.bzl",
+    "QemuSystemToolchainInfo",
+    "qemu_system_resolved_toolchain",
+)
+
+qemu_system_resolved_toolchain(
+    name = "qemu_system_riscv64",
+    guest_platform = "@rules_qemu//qemu:system_guest_linux_riscv64",
+)
+
 def _my_rule_impl(ctx):
-    qemu = ctx.toolchains["@rules_qemu//qemu:system_toolchain_type"]
+    qemu = ctx.attr.qemu[QemuSystemToolchainInfo]
     qemu_system = qemu.qemu_system
     qemu_img = qemu.qemu_img
     system_data_files = qemu.system_data_files
+
+my_rule = rule(
+    implementation = _my_rule_impl,
+    attrs = {
+        "qemu": attr.label(
+            cfg = "exec",
+            providers = [QemuSystemToolchainInfo],
+        ),
+    },
+)
+
+my_rule(
+    name = "boot_riscv64",
+    qemu = ":qemu_system_riscv64",
+)
 ```
 
 The corresponding `QemuSystemToolchainInfo` provider is available from
 `@rules_qemu//qemu:qemu_system_toolchain.bzl`. It includes the selected
-`qemu-system-*` binary, `qemu-img`, the `share/qemu` data files, a stable data
-anchor file for locating `-L`, and target metadata such as `machine`,
+`qemu-system-*` binary, `qemu-img`, the `share/qemu` data directory for
+locating `-L`, and target metadata such as `machine`,
 `system_target`, and `target_arch`.
 
 ## Smoke Test Example
@@ -138,7 +167,9 @@ bazel test //...
 The smoke workspace registers `rules_qemu`, builds simple C binaries for
 multiple target platforms with the published LLVM toolchain, runs them through
 `qemu_binary`, and starts `qemu-system` through QMP with the hermetic
-`share/qemu` data path.
+`share/qemu` data path. It also starts a `qemu-system-riscv64` QMP smoke target
+from the default host-configured test package to exercise explicit guest
+selection.
 
 ## Roadmap
 

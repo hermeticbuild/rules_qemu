@@ -111,7 +111,7 @@ Linux amd64 host.
 
 Rule authors can consume `@rules_qemu//qemu:system_toolchain_type` to access
 hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data. Consumers
-define their own `config_setting` labels and declare which QEMU system target
+provide their own `config_setting` labels and declare which QEMU system target
 those settings select through the module extension.
 
 ```starlark
@@ -126,10 +126,31 @@ register_toolchains("@qemu_system_toolchains//:all")
 ```
 
 ```starlark
+# config/qemu_system_target.bzl
+def _qemu_system_target_impl(_ctx):
+    return []
+
+qemu_system_target = rule(
+    implementation = _qemu_system_target_impl,
+    build_setting = config.string(flag = True),
+)
+```
+
+```starlark
 # config/BUILD.bazel
+load(":qemu_system_target.bzl", "qemu_system_target")
+
+qemu_system_target(
+    name = "qemu_system_target",
+    build_setting_default = "x86_64",
+    visibility = ["//visibility:public"],
+)
+
 config_setting(
     name = "qemu_system_riscv64",
-    values = {"define": "qemu_system_target=riscv64"},
+    flag_values = {
+        ":qemu_system_target": "riscv64",
+    },
     visibility = ["//visibility:public"],
 )
 ```

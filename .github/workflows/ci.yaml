@@ -77,14 +77,13 @@ jobs:
             --bazelrc=.bazelrc \
             test \
             "${REMOTE_HEADER_ARGS[@]}" \
-            --define=qemu_system_target=x86_64 \
             //...
           bazel \
             --bazelrc="$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc" \
             --bazelrc=.bazelrc \
             test \
             "${REMOTE_HEADER_ARGS[@]}" \
-            --define=qemu_system_target=riscv64 \
+            --//:qemu_system_target=riscv64 \
             //:qemu_system_riscv64_qmp_smoke_test
   pre-commit:
     runs-on: ubuntu-latest

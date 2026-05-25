@@ -4,6 +4,14 @@ load("@rules_python//python:py_test.bzl", "py_test")
 
 _QEMU_SYSTEM_TOOLCHAIN_TYPE = Label("@rules_qemu//qemu:system_toolchain_type")
 
+def _qemu_system_target_impl(_ctx):
+    return []
+
+qemu_system_target = rule(
+    implementation = _qemu_system_target_impl,
+    build_setting = config.string(flag = True),
+)
+
 def _runfiles_path(ctx, file):
     if file.short_path.startswith("../"):
         return file.short_path[3:]

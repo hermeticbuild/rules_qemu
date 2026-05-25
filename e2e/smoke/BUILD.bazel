@@ -4,6 +4,7 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(
     ":qemu_system_smoke_test.bzl",
     "qemu_system_qmp_smoke_test",
+    "qemu_system_target",
     "qemu_system_x86_boot_smoke_test",
 )
 
@@ -18,15 +19,25 @@ SMOKE_PLATFORMS = {
     "riscv64": "@llvm//platforms:linux_riscv64_musl",
 }
 
+qemu_system_target(
+    name = "qemu_system_target",
+    build_setting_default = "x86_64",
+    visibility = ["//visibility:public"],
+)
+
 config_setting(
     name = "qemu_system_target_riscv64",
-    values = {"define": "qemu_system_target=riscv64"},
+    flag_values = {
+        ":qemu_system_target": "riscv64",
+    },
     visibility = ["//visibility:public"],
 )
 
 config_setting(
     name = "qemu_system_target_x86_64",
-    values = {"define": "qemu_system_target=x86_64"},
+    flag_values = {
+        ":qemu_system_target": "x86_64",
+    },
     visibility = ["//visibility:public"],
 )
 

@@ -109,6 +109,39 @@ filegroup(
 )
 """
 
+def _system_guest_platform_entries(module_ctx):
+    entries = []
+    seen_platforms = {}
+
+    for module in module_ctx.modules:
+        for tag in module.tags.system_guest_platform:
+            platform = str(tag.platform)
+            target_platform = (tag.target_os, tag.target_cpu)
+            if platform in seen_platforms:
+                if seen_platforms[platform] != target_platform:
+                    fail("QEMU system guest platform {} declared for both {} and {}".format(
+                        platform,
+                        seen_platforms[platform],
+                        target_platform,
+                    ))
+                continue
+
+            seen_platforms[platform] = target_platform
+            name = "guest_{}_{}_{}".format(len(entries), tag.target_os, tag.target_cpu)
+            entries.append("""    {{
+        "name": "{name}",
+        "platform": "{platform}",
+        "target_cpu": "{target_cpu}",
+        "target_os": "{target_os}",
+    }},""".format(
+                name = name,
+                platform = platform,
+                target_cpu = tag.target_cpu,
+                target_os = tag.target_os,
+            ))
+
+    return "\n".join(entries)
+
 def _qemu_impl(module_ctx):
     """Implementation of the QEMU prebuilt module extension."""
 
@@ -173,7 +206,10 @@ def _qemu_impl(module_ctx):
         )
 
     qemu_toolchains_repository(name = "qemu_user_toolchains")
-    qemu_system_toolchains_repository(name = "qemu_system_toolchains")
+    qemu_system_toolchains_repository(
+        name = "qemu_system_toolchains",
+        system_guest_platforms = _system_guest_platform_entries(module_ctx),
+    )
 
     metadata_kwargs = {}
     if bazel_features.external_deps.extension_metadata_has_reproducible:
@@ -188,7 +224,28 @@ def _qemu_impl(module_ctx):
         **metadata_kwargs
     )
 
+_SYSTEM_GUEST_PLATFORM_TAG = tag_class(
+    attrs = {
+        "platform": attr.label(
+            mandatory = True,
+            doc = "User-defined platform label that selects this QEMU guest.",
+        ),
+        "target_cpu": attr.string(
+            mandatory = True,
+            doc = "QEMU guest CPU name, such as x86_64, aarch64, or riscv64.",
+        ),
+        "target_os": attr.string(
+            mandatory = True,
+            doc = "QEMU guest OS name, such as linux.",
+        ),
+    },
+    doc = "Declares a user-owned platform label as a QEMU system guest selector.",
+)
+
 qemu = module_extension(
     implementation = _qemu_impl,
     doc = "Extension for downloading static Linux QEMU prebuilts.",
+    tag_classes = {
+        "system_guest_platform": _SYSTEM_GUEST_PLATFORM_TAG,
+    },
 )

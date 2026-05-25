@@ -112,13 +112,13 @@ _qemu_system_api_probe = rule(
 def qemu_system_api_probe(name, **kwargs):
     qemu_system_resolved_toolchain(
         name = name + "_x86_64_qemu",
-        guest_platform = "@rules_qemu//qemu:system_guest_linux_x86_64",
+        guest_platform = "//:qemu_guest_linux_x86_64",
         testonly = True,
     )
 
     qemu_system_resolved_toolchain(
         name = name + "_riscv64_qemu",
-        guest_platform = "@rules_qemu//qemu:system_guest_linux_riscv64",
+        guest_platform = "//:qemu_guest_linux_riscv64",
         testonly = True,
     )
 
@@ -159,7 +159,7 @@ def _qemu_system_smoke_test(name, *, guest_platform, script, **kwargs):
         **kwargs
     )
 
-def qemu_system_qmp_smoke_test(name, guest_platform = "@rules_qemu//qemu:system_guest_linux_x86_64", **kwargs):
+def qemu_system_qmp_smoke_test(name, guest_platform = "//:qemu_guest_linux_x86_64", **kwargs):
     _qemu_system_smoke_test(
         name = name,
         guest_platform = guest_platform,
@@ -167,7 +167,7 @@ def qemu_system_qmp_smoke_test(name, guest_platform = "@rules_qemu//qemu:system_
         **kwargs
     )
 
-def qemu_system_x86_boot_smoke_test(name, guest_platform = "@rules_qemu//qemu:system_guest_linux_x86_64", **kwargs):
+def qemu_system_x86_boot_smoke_test(name, guest_platform = "//:qemu_guest_linux_x86_64", **kwargs):
     _qemu_system_smoke_test(
         name = name,
         guest_platform = guest_platform,

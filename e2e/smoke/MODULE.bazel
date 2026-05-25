@@ -4,6 +4,7 @@ module(
 )
 
 bazel_dep(name = "llvm", version = "0.7.6", dev_dependency = True)
+bazel_dep(name = "platforms", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "rules_cc", version = "0.2.18", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "1.7.0", dev_dependency = True)
 bazel_dep(name = "rules_qemu", version = "0.0.0", dev_dependency = True)
@@ -20,6 +21,16 @@ local_path_override(
 )
 
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
+qemu.system_guest_platform(
+    platform = "//:qemu_guest_linux_riscv64",
+    target_cpu = "riscv64",
+    target_os = "linux",
+)
+qemu.system_guest_platform(
+    platform = "//:qemu_guest_linux_x86_64",
+    target_cpu = "x86_64",
+    target_os = "linux",
+)
 use_repo(
     qemu,
     "qemu_system_toolchains",

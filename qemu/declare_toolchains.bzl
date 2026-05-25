@@ -1,10 +1,6 @@
 """Helpers for declaring QEMU toolchains."""
 
-load(
-    "//qemu:qemu_system_toolchain.bzl",
-    "qemu_system_guest_config_setting_name",
-    "qemu_system_toolchain",
-)
+load("//qemu:qemu_system_toolchain.bzl", "qemu_system_toolchain")
 load("//qemu:qemu_toolchain.bzl", "qemu_toolchain")
 
 EXEC_PLATFORM_TO_REPO_ARCH = {
@@ -134,22 +130,38 @@ def declare_toolchains(*, exec_platforms, target_platforms):
             )
 
 # buildifier: disable=unnamed-macro
-def declare_system_toolchains(*, exec_platforms, target_platforms):
-    """Declares QEMU system-mode toolchains for exec and target platform pairs.
+def declare_system_toolchains(*, exec_platforms, system_guest_platforms):
+    """Declares QEMU system-mode toolchains for exec and explicit guest platforms.
 
     Args:
         exec_platforms: Iterable of `(os, cpu)` pairs for the execution platform.
-        target_platforms: Iterable of `(os, cpu)` pairs for emulated target platforms.
+        system_guest_platforms: Iterable of dictionaries with `name`,
+            `target_os`, `target_cpu`, and `platform` fields for emulated guest
+            platforms.
     """
+
+    for guest in system_guest_platforms:
+        target_platform = (guest["target_os"], guest["target_cpu"])
+        if target_platform not in TARGET_PLATFORM_TO_QEMU_SYSTEM:
+            fail("unsupported QEMU system guest platform: {}".format(target_platform))
+
+        native.config_setting(
+            name = guest["name"] + "_selected",
+            flag_values = {
+                "@rules_qemu//qemu:system_guest_platform": guest["platform"],
+            },
+        )
 
     for exec_platform in exec_platforms:
         exec_os, exec_cpu = exec_platform
         repo_arch = EXEC_PLATFORM_TO_REPO_ARCH[exec_platform]
 
-        for target_platform in target_platforms:
-            target_os, target_cpu = target_platform
+        for guest in system_guest_platforms:
+            target_os = guest["target_os"]
+            target_cpu = guest["target_cpu"]
+            target_platform = (target_os, target_cpu)
             qemu_system = TARGET_PLATFORM_TO_QEMU_SYSTEM[target_platform]
-            name = "qemu_system_{}_{}_on_{}_{}".format(target_os, target_cpu, exec_os, exec_cpu)
+            name = "qemu_system_{}_on_{}_{}".format(guest["name"], exec_os, exec_cpu)
             repo_system_target = qemu_system.system_target.replace("-", "_")
 
             qemu_system_toolchain(
@@ -170,7 +182,7 @@ def declare_system_toolchains(*, exec_platforms, target_platforms):
                     "@platforms//cpu:{}".format(exec_cpu),
                 ],
                 target_settings = [
-                    "@rules_qemu//qemu:{}".format(qemu_system_guest_config_setting_name(target_os, target_cpu)),
+                    ":{}_selected".format(guest["name"]),
                 ],
                 toolchain = name + "_impl",
                 toolchain_type = "@rules_qemu//qemu:system_toolchain_type",

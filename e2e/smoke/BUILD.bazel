@@ -19,6 +19,24 @@ SMOKE_PLATFORMS = {
     "riscv64": "@llvm//platforms:linux_riscv64_musl",
 }
 
+platform(
+    name = "qemu_guest_linux_riscv64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:riscv64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "qemu_guest_linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 [
     qemu_binary(
         name = "hello_{}".format(name),
@@ -107,7 +125,7 @@ qemu_system_qmp_smoke_test(
 
 qemu_system_qmp_smoke_test(
     name = "qemu_system_riscv64_qmp_smoke_test",
-    guest_platform = "@rules_qemu//qemu:system_guest_linux_riscv64",
+    guest_platform = "//:qemu_guest_linux_riscv64",
 )
 
 qemu_system_x86_boot_smoke_test(

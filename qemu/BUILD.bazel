@@ -1,27 +1,11 @@
 load("@bazel_lib//:bzl_library.bzl", "bzl_library")
-load(
-    "//qemu:qemu_system_toolchain.bzl",
-    "declare_qemu_system_guest_platforms",
-)
 
-SYSTEM_GUEST_PLATFORMS = [
-    ("linux", "aarch64"),
-    ("linux", "arm"),
-    ("linux", "armv7"),
-    ("linux", "i386"),
-    ("linux", "mips64"),
-    ("linux", "ppc"),
-    ("linux", "ppc32"),
-    ("linux", "ppc64le"),
-    ("linux", "riscv32"),
-    ("linux", "riscv64"),
-    ("linux", "s390x"),
-    ("linux", "x86_32"),
-    ("linux", "x86_64"),
-]
+filegroup(name = "system_guest_unset")
 
-declare_qemu_system_guest_platforms(
-    target_platforms = SYSTEM_GUEST_PLATFORMS,
+label_setting(
+    name = "system_guest_platform",
+    build_setting_default = ":system_guest_unset",
+    visibility = ["//visibility:public"],
 )
 
 toolchain_type(

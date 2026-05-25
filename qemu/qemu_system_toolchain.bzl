@@ -88,50 +88,6 @@ qemu_system_toolchain = rule(
     doc = "Defines a QEMU system-mode toolchain with qemu-system, qemu-img, and share/qemu data.",
 )
 
-def qemu_system_guest_platform_name(os, cpu):
-    return "system_guest_{}_{}".format(os, cpu)
-
-def qemu_system_guest_config_setting_name(os, cpu):
-    return "system_guest_is_{}_{}".format(os, cpu)
-
-# buildifier: disable=unnamed-macro
-def declare_qemu_system_guest_platforms(*, target_platforms):
-    """Declares QEMU system guest platform settings.
-
-    These labels represent the platform QEMU should emulate. They are separate
-    from Bazel's target platform so a host-configured rule can still request a
-    QEMU binary for a specific guest machine.
-
-    Args:
-        target_platforms: Iterable of `(os, cpu)` guest platform pairs.
-    """
-
-    native.filegroup(
-        name = "system_guest_unset",
-        visibility = ["//visibility:public"],
-    )
-
-    native.label_setting(
-        name = "system_guest_platform",
-        build_setting_default = ":system_guest_unset",
-        visibility = ["//visibility:public"],
-    )
-
-    for os, cpu in target_platforms:
-        guest_platform = qemu_system_guest_platform_name(os, cpu)
-        native.filegroup(
-            name = guest_platform,
-            visibility = ["//visibility:public"],
-        )
-
-        native.config_setting(
-            name = qemu_system_guest_config_setting_name(os, cpu),
-            flag_values = {
-                ":system_guest_platform": ":{}".format(guest_platform),
-            },
-            visibility = ["//visibility:public"],
-        )
-
 def _qemu_system_guest_transition_impl(_settings, attr):
     return {
         _QEMU_SYSTEM_GUEST_PLATFORM: attr.guest_platform,
@@ -172,7 +128,7 @@ qemu_system_resolved_toolchain = rule(
     attrs = {
         "guest_platform": attr.label(
             mandatory = True,
-            doc = "A @rules_qemu//qemu:system_guest_* label selecting the QEMU guest platform.",
+            doc = "A user-defined platform label selecting the QEMU guest platform.",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

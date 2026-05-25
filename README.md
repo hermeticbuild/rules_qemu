@@ -109,83 +109,48 @@ Linux amd64 host.
 
 ## QEMU System Toolchains
 
-Rule authors can use `qemu_system_resolved_toolchain` to resolve hermetic
-`qemu-system-*`, `qemu-img`, and `share/qemu` runtime data for an explicit QEMU
-guest platform. The helper applies a QEMU-specific transition, so the emulated
-guest platform does not have to be the Bazel target platform of the rule that
-launches QEMU. Consumers define their own selection settings and declare which
-QEMU system target those settings select through the module extension.
+Rule authors can consume `@rules_qemu//qemu:system_toolchain_type` to access
+hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data. Consumers
+define their own `config_setting` labels and declare which QEMU system target
+those settings select through the module extension.
 
 ```starlark
 # MODULE.bazel
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
 qemu.system_toolchain(
     system_target = "riscv64-softmmu",
-    target_settings = ["//platforms:qemu_guest_is_linux_riscv64"],
+    target_settings = ["//config:qemu_system_riscv64"],
 )
 use_repo(qemu, "qemu_system_toolchains")
 register_toolchains("@qemu_system_toolchains//:all")
 ```
 
 ```starlark
-# platforms/BUILD.bazel
-platform(
-    name = "linux_riscv64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:riscv64",
-    ],
-    visibility = ["//visibility:public"],
-)
-
+# config/BUILD.bazel
 config_setting(
-    name = "qemu_guest_is_linux_riscv64",
-    flag_values = {
-        "@rules_qemu//qemu:system_guest_platform": ":linux_riscv64",
-    },
+    name = "qemu_system_riscv64",
+    values = {"define": "qemu_system_target=riscv64"},
     visibility = ["//visibility:public"],
 )
 ```
 
 ```starlark
 # BUILD.bazel
-load(
-    "@rules_qemu//qemu:qemu_system_toolchain.bzl",
-    "QemuSystemToolchainInfo",
-    "qemu_system_resolved_toolchain",
-)
-
-qemu_system_resolved_toolchain(
-    name = "qemu_system_riscv64",
-    guest_platform = "//platforms:linux_riscv64",
-)
-
 def _my_rule_impl(ctx):
-    qemu = ctx.attr.qemu[QemuSystemToolchainInfo]
+    qemu = ctx.toolchains["@rules_qemu//qemu:system_toolchain_type"]
     qemu_system = qemu.qemu_system
     qemu_img = qemu.qemu_img
     system_data_files = qemu.system_data_files
 
 my_rule = rule(
     implementation = _my_rule_impl,
-    attrs = {
-        "qemu": attr.label(
-            cfg = "exec",
-            providers = [QemuSystemToolchainInfo],
-        ),
-    },
-)
-
-my_rule(
-    name = "boot_riscv64",
-    qemu = ":qemu_system_riscv64",
+    toolchains = ["@rules_qemu//qemu:system_toolchain_type"],
 )
 ```
 
-When using `qemu_system_resolved_toolchain`, the referenced `target_settings`
-should match `@rules_qemu//qemu:system_guest_platform`, as shown above. Advanced
-users may provide other `target_settings` and resolve `system_toolchain_type`
-directly if they manage those settings themselves.
+With this model, each configured rule instance resolves one QEMU system guest.
+Select a different guest by changing the configuration so a different
+`target_settings` label matches.
 
 The corresponding `QemuSystemToolchainInfo` provider is available from
 `@rules_qemu//qemu:qemu_system_toolchain.bzl`. It includes the selected

@@ -113,16 +113,15 @@ Rule authors can use `qemu_system_resolved_toolchain` to resolve hermetic
 `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data for an explicit QEMU
 guest platform. The helper applies a QEMU-specific transition, so the emulated
 guest platform does not have to be the Bazel target platform of the rule that
-launches QEMU. Consumers define their own guest platform labels and declare
-which QEMU target each platform selects through the module extension.
+launches QEMU. Consumers define their own selection settings and declare which
+QEMU system target those settings select through the module extension.
 
 ```starlark
 # MODULE.bazel
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
-qemu.system_guest_platform(
-    platform = "//platforms:linux_riscv64",
-    target_cpu = "riscv64",
-    target_os = "linux",
+qemu.system_toolchain(
+    system_target = "riscv64-softmmu",
+    target_settings = ["//platforms:qemu_guest_is_linux_riscv64"],
 )
 use_repo(qemu, "qemu_system_toolchains")
 register_toolchains("@qemu_system_toolchains//:all")
@@ -136,6 +135,14 @@ platform(
         "@platforms//os:linux",
         "@platforms//cpu:riscv64",
     ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "qemu_guest_is_linux_riscv64",
+    flag_values = {
+        "@rules_qemu//qemu:system_guest_platform": ":linux_riscv64",
+    },
     visibility = ["//visibility:public"],
 )
 ```
@@ -174,6 +181,11 @@ my_rule(
     qemu = ":qemu_system_riscv64",
 )
 ```
+
+When using `qemu_system_resolved_toolchain`, the referenced `target_settings`
+should match `@rules_qemu//qemu:system_guest_platform`, as shown above. Advanced
+users may provide other `target_settings` and resolve `system_toolchain_type`
+directly if they manage those settings themselves.
 
 The corresponding `QemuSystemToolchainInfo` provider is available from
 `@rules_qemu//qemu:qemu_system_toolchain.bzl`. It includes the selected

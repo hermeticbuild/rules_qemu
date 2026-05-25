@@ -24,71 +24,56 @@ TARGET_PLATFORM_TO_QEMU_ARCH = {
     ("linux", "x86_64"): "x86_64",
 }
 
-TARGET_PLATFORM_TO_QEMU_SYSTEM = {
-    ("linux", "aarch64"): struct(
+SYSTEM_TARGET_TO_QEMU_SYSTEM = {
+    "aarch64-softmmu": struct(
         binary = "qemu-system-aarch64",
         machine = "virt",
-        system_target = "aarch64-softmmu",
+        target_arch = "aarch64",
     ),
-    ("linux", "arm"): struct(
+    "arm-softmmu": struct(
         binary = "qemu-system-arm",
         machine = "virt",
-        system_target = "arm-softmmu",
+        target_arch = "arm",
     ),
-    ("linux", "armv7"): struct(
-        binary = "qemu-system-arm",
-        machine = "virt",
-        system_target = "arm-softmmu",
-    ),
-    ("linux", "i386"): struct(
+    "i386-softmmu": struct(
         binary = "qemu-system-i386",
         machine = "q35",
-        system_target = "i386-softmmu",
+        target_arch = "i386",
     ),
-    ("linux", "mips64"): struct(
+    "mips64-softmmu": struct(
         binary = "qemu-system-mips64",
         machine = "malta",
-        system_target = "mips64-softmmu",
+        target_arch = "mips64",
     ),
-    ("linux", "ppc"): struct(
+    "ppc-softmmu": struct(
         binary = "qemu-system-ppc",
         machine = "g3beige",
-        system_target = "ppc-softmmu",
+        target_arch = "ppc",
     ),
-    ("linux", "ppc32"): struct(
-        binary = "qemu-system-ppc",
-        machine = "g3beige",
-        system_target = "ppc-softmmu",
-    ),
-    ("linux", "ppc64le"): struct(
+    "ppc64-softmmu": struct(
         binary = "qemu-system-ppc64",
         machine = "pseries",
-        system_target = "ppc64-softmmu",
+        target_arch = "ppc64",
     ),
-    ("linux", "riscv32"): struct(
+    "riscv32-softmmu": struct(
         binary = "qemu-system-riscv32",
         machine = "virt",
-        system_target = "riscv32-softmmu",
+        target_arch = "riscv32",
     ),
-    ("linux", "riscv64"): struct(
+    "riscv64-softmmu": struct(
         binary = "qemu-system-riscv64",
         machine = "virt",
-        system_target = "riscv64-softmmu",
+        target_arch = "riscv64",
     ),
-    ("linux", "s390x"): struct(
+    "s390x-softmmu": struct(
         binary = "qemu-system-s390x",
         machine = "s390-ccw-virtio",
-        system_target = "s390x-softmmu",
+        target_arch = "s390x",
     ),
-    ("linux", "x86_32"): struct(
-        binary = "qemu-system-i386",
-        machine = "q35",
-        system_target = "i386-softmmu",
-    ),
-    ("linux", "x86_64"): struct(
+    "x86_64-softmmu": struct(
         binary = "qemu-system-x86_64",
         machine = "q35",
-        system_target = "x86_64-softmmu",
+        target_arch = "x86_64",
     ),
 }
 
@@ -130,49 +115,43 @@ def declare_toolchains(*, exec_platforms, target_platforms):
             )
 
 # buildifier: disable=unnamed-macro
-def declare_system_toolchains(*, exec_platforms, system_guest_platforms):
-    """Declares QEMU system-mode toolchains for exec and explicit guest platforms.
+def declare_system_toolchains(*, exec_platforms, system_toolchains):
+    """Declares QEMU system-mode toolchains for exec platforms.
 
     Args:
         exec_platforms: Iterable of `(os, cpu)` pairs for the execution platform.
-        system_guest_platforms: Iterable of dictionaries with `name`,
-            `target_os`, `target_cpu`, and `platform` fields for emulated guest
-            platforms.
+        system_toolchains: Iterable of dictionaries with `name`,
+            `system_target`, and `target_settings` fields. `machine` and
+            `target_arch` may optionally override rules_qemu metadata.
     """
 
-    for guest in system_guest_platforms:
-        target_platform = (guest["target_os"], guest["target_cpu"])
-        if target_platform not in TARGET_PLATFORM_TO_QEMU_SYSTEM:
-            fail("unsupported QEMU system guest platform: {}".format(target_platform))
-
-        native.config_setting(
-            name = guest["name"] + "_selected",
-            flag_values = {
-                "@rules_qemu//qemu:system_guest_platform": guest["platform"],
-            },
-        )
+    for system_toolchain in system_toolchains:
+        if system_toolchain["system_target"] not in SYSTEM_TARGET_TO_QEMU_SYSTEM:
+            fail("unsupported QEMU system target: {}".format(system_toolchain["system_target"]))
+        if not system_toolchain["target_settings"]:
+            fail("QEMU system target {} must declare at least one target_setting".format(system_toolchain["system_target"]))
 
     for exec_platform in exec_platforms:
         exec_os, exec_cpu = exec_platform
         repo_arch = EXEC_PLATFORM_TO_REPO_ARCH[exec_platform]
 
-        for guest in system_guest_platforms:
-            target_os = guest["target_os"]
-            target_cpu = guest["target_cpu"]
-            target_platform = (target_os, target_cpu)
-            qemu_system = TARGET_PLATFORM_TO_QEMU_SYSTEM[target_platform]
-            name = "qemu_system_{}_on_{}_{}".format(guest["name"], exec_os, exec_cpu)
-            repo_system_target = qemu_system.system_target.replace("-", "_")
+        for system_toolchain in system_toolchains:
+            system_target = system_toolchain["system_target"]
+            qemu_system = SYSTEM_TARGET_TO_QEMU_SYSTEM[system_target]
+            name = "qemu_system_{}_on_{}_{}".format(system_toolchain["name"], exec_os, exec_cpu)
+            repo_system_target = system_target.replace("-", "_")
+            machine = system_toolchain["machine"] or qemu_system.machine
+            target_arch = system_toolchain["target_arch"] or qemu_system.target_arch
 
             qemu_system_toolchain(
                 name = name + "_impl",
-                machine = qemu_system.machine,
+                machine = machine,
                 qemu_img = "@qemu_img_prebuilt_linux_{}//:qemu-img".format(repo_arch),
                 qemu_system = "@qemu_system_bin_prebuilt_linux_{}_{}//:{}".format(repo_arch, repo_system_target, qemu_system.binary),
                 system_data = "@qemu_system_data_prebuilt_linux_{}//:qemu-system-data".format(repo_arch),
                 system_data_anchor = "@qemu_system_data_prebuilt_linux_{}//:qemu-system-data".format(repo_arch),
-                system_target = qemu_system.system_target,
-                target_arch = target_cpu,
+                system_target = system_target,
+                target_arch = target_arch,
             )
 
             native.toolchain(
@@ -181,9 +160,7 @@ def declare_system_toolchains(*, exec_platforms, system_guest_platforms):
                     "@platforms//os:{}".format(exec_os),
                     "@platforms//cpu:{}".format(exec_cpu),
                 ],
-                target_settings = [
-                    ":{}_selected".format(guest["name"]),
-                ],
+                target_settings = system_toolchain["target_settings"],
                 toolchain = name + "_impl",
                 toolchain_type = "@rules_qemu//qemu:system_toolchain_type",
             )

@@ -42,13 +42,13 @@ EXEC_PLATFORMS = [
     ("linux", "aarch64"),
 ]
 
-SYSTEM_GUEST_PLATFORMS = [
-{system_guest_platforms}
+SYSTEM_TOOLCHAINS = [
+{system_toolchains}
 ]
 
 declare_system_toolchains(
     exec_platforms = EXEC_PLATFORMS,
-    system_guest_platforms = SYSTEM_GUEST_PLATFORMS,
+    system_toolchains = SYSTEM_TOOLCHAINS,
 )
 """
 
@@ -64,7 +64,7 @@ def _qemu_system_toolchains_repository_impl(rctx):
     rctx.file(
         "BUILD.bazel",
         _SYSTEM_TOOLCHAINS_BUILD.format(
-            system_guest_platforms = rctx.attr.system_guest_platforms,
+            system_toolchains = rctx.attr.system_toolchains,
         ),
     )
     return rctx.repo_metadata(reproducible = True)
@@ -72,6 +72,6 @@ def _qemu_system_toolchains_repository_impl(rctx):
 qemu_system_toolchains_repository = repository_rule(
     implementation = _qemu_system_toolchains_repository_impl,
     attrs = {
-        "system_guest_platforms": attr.string(),
+        "system_toolchains": attr.string(),
     },
 )

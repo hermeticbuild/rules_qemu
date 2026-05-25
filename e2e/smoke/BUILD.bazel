@@ -28,12 +28,28 @@ platform(
     visibility = ["//visibility:public"],
 )
 
+config_setting(
+    name = "qemu_guest_is_linux_riscv64",
+    flag_values = {
+        "@rules_qemu//qemu:system_guest_platform": ":qemu_guest_linux_riscv64",
+    },
+    visibility = ["//visibility:public"],
+)
+
 platform(
     name = "qemu_guest_linux_x86_64",
     constraint_values = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "qemu_guest_is_linux_x86_64",
+    flag_values = {
+        "@rules_qemu//qemu:system_guest_platform": ":qemu_guest_linux_x86_64",
+    },
     visibility = ["//visibility:public"],
 )
 

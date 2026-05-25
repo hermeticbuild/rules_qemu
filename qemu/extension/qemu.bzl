@@ -109,35 +109,43 @@ filegroup(
 )
 """
 
-def _system_guest_platform_entries(module_ctx):
+def _system_toolchain_entries(module_ctx):
     entries = []
-    seen_platforms = {}
+    seen_toolchains = {}
 
     for module in module_ctx.modules:
-        for tag in module.tags.system_guest_platform:
-            platform = str(tag.platform)
-            target_platform = (tag.target_os, tag.target_cpu)
-            if platform in seen_platforms:
-                if seen_platforms[platform] != target_platform:
-                    fail("QEMU system guest platform {} declared for both {} and {}".format(
-                        platform,
-                        seen_platforms[platform],
-                        target_platform,
+        for tag in module.tags.system_toolchain:
+            target_settings = [str(target_setting) for target_setting in tag.target_settings]
+            key = (tag.system_target, tuple(target_settings))
+            if key in seen_toolchains:
+                previous = seen_toolchains[key]
+                if previous != (tag.machine, tag.target_arch):
+                    fail("QEMU system toolchain {} with target_settings {} declared with conflicting metadata".format(
+                        tag.system_target,
+                        target_settings,
                     ))
                 continue
 
-            seen_platforms[platform] = target_platform
-            name = "guest_{}_{}_{}".format(len(entries), tag.target_os, tag.target_cpu)
+            seen_toolchains[key] = (tag.machine, tag.target_arch)
+            name = "system_{}_{}".format(len(entries), tag.system_target.replace("-", "_"))
+            target_settings_repr = "\n".join([
+                '            "{}",'.format(target_setting)
+                for target_setting in target_settings
+            ])
             entries.append("""    {{
+        "machine": "{machine}",
         "name": "{name}",
-        "platform": "{platform}",
-        "target_cpu": "{target_cpu}",
-        "target_os": "{target_os}",
+        "system_target": "{system_target}",
+        "target_arch": "{target_arch}",
+        "target_settings": [
+{target_settings}
+        ],
     }},""".format(
+                machine = tag.machine,
                 name = name,
-                platform = platform,
-                target_cpu = tag.target_cpu,
-                target_os = tag.target_os,
+                system_target = tag.system_target,
+                target_arch = tag.target_arch,
+                target_settings = target_settings_repr,
             ))
 
     return "\n".join(entries)
@@ -208,7 +216,7 @@ def _qemu_impl(module_ctx):
     qemu_toolchains_repository(name = "qemu_user_toolchains")
     qemu_system_toolchains_repository(
         name = "qemu_system_toolchains",
-        system_guest_platforms = _system_guest_platform_entries(module_ctx),
+        system_toolchains = _system_toolchain_entries(module_ctx),
     )
 
     metadata_kwargs = {}
@@ -224,28 +232,30 @@ def _qemu_impl(module_ctx):
         **metadata_kwargs
     )
 
-_SYSTEM_GUEST_PLATFORM_TAG = tag_class(
+_SYSTEM_TOOLCHAIN_TAG = tag_class(
     attrs = {
-        "platform": attr.label(
-            mandatory = True,
-            doc = "User-defined platform label that selects this QEMU guest.",
+        "machine": attr.string(
+            doc = "Default machine hint for this QEMU system target. Defaults to rules_qemu's target metadata.",
         ),
-        "target_cpu": attr.string(
+        "system_target": attr.string(
             mandatory = True,
-            doc = "QEMU guest CPU name, such as x86_64, aarch64, or riscv64.",
+            doc = "QEMU system target, such as x86_64-softmmu, aarch64-softmmu, or riscv64-softmmu.",
         ),
-        "target_os": attr.string(
+        "target_arch": attr.string(
+            doc = "Guest architecture metadata exposed by QemuSystemToolchainInfo. Defaults to rules_qemu's target metadata.",
+        ),
+        "target_settings": attr.label_list(
             mandatory = True,
-            doc = "QEMU guest OS name, such as linux.",
+            doc = "User-defined config_setting labels passed to the generated toolchain target_settings.",
         ),
     },
-    doc = "Declares a user-owned platform label as a QEMU system guest selector.",
+    doc = "Declares a QEMU system toolchain selected by user-owned target_settings.",
 )
 
 qemu = module_extension(
     implementation = _qemu_impl,
     doc = "Extension for downloading static Linux QEMU prebuilts.",
     tag_classes = {
-        "system_guest_platform": _SYSTEM_GUEST_PLATFORM_TAG,
+        "system_toolchain": _SYSTEM_TOOLCHAIN_TAG,
     },
 )

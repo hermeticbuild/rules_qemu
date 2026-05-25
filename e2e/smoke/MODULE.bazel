@@ -21,15 +21,13 @@ local_path_override(
 )
 
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
-qemu.system_guest_platform(
-    platform = "//:qemu_guest_linux_riscv64",
-    target_cpu = "riscv64",
-    target_os = "linux",
+qemu.system_toolchain(
+    system_target = "riscv64-softmmu",
+    target_settings = ["//:qemu_guest_is_linux_riscv64"],
 )
-qemu.system_guest_platform(
-    platform = "//:qemu_guest_linux_x86_64",
-    target_cpu = "x86_64",
-    target_os = "linux",
+qemu.system_toolchain(
+    system_target = "x86_64-softmmu",
+    target_settings = ["//:qemu_guest_is_linux_x86_64"],
 )
 use_repo(
     qemu,

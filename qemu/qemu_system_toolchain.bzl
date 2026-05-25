@@ -13,7 +13,7 @@ QemuSystemToolchainInfo = provider(
         "system_data_anchor": "The share/qemu directory used as the QEMU data directory.",
         "system_data_files": "Depset containing the QEMU system runtime data directory.",
         "system_target": "The QEMU softmmu target name.",
-        "target_arch": "The Bazel target CPU name.",
+        "target_arch": "The QEMU guest architecture metadata.",
     },
 )
 

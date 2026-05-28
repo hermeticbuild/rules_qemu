@@ -6,25 +6,18 @@ import sys
 import tempfile
 import time
 
+from python.runfiles import runfiles
+
+
+_RUNFILES = runfiles.Create()
+
 
 def rlocation(path):
-    runfiles_dir = os.environ.get("RUNFILES_DIR")
-    if runfiles_dir:
-        candidate = os.path.join(runfiles_dir, path)
-        if os.path.exists(candidate):
-            return candidate
-
-    manifest = os.environ.get("RUNFILES_MANIFEST_FILE")
-    if manifest:
-        with open(manifest, "r", encoding="utf-8") as manifest_file:
-            for line in manifest_file:
-                key, _, value = line.rstrip("\n").partition(" ")
-                if key == path:
-                    return value
-
+    resolved = _RUNFILES.Rlocation(path)
+    if resolved:
+        return resolved
     if os.path.exists(path):
         return path
-
     raise FileNotFoundError(path)
 
 

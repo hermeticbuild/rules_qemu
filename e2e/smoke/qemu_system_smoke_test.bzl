@@ -58,6 +58,7 @@ def _qemu_system_smoke_test(name, *, script, **kwargs):
     config_kwargs = {}
     if "target_compatible_with" in kwargs:
         config_kwargs["target_compatible_with"] = kwargs["target_compatible_with"]
+    deps = kwargs.pop("deps", [])
 
     _qemu_system_qmp_smoke_config(
         name = config_name,
@@ -68,11 +69,12 @@ def _qemu_system_smoke_test(name, *, script, **kwargs):
     py_test(
         name = name,
         srcs = [script],
-        args = ["$(rootpath :{})".format(config_name)],
+        args = ["$(rlocationpath :{})".format(config_name)],
         config_settings = {
             "@rules_python//python/config_settings:bootstrap_impl": "script",
         },
         data = [":{}".format(config_name)],
+        deps = deps + ["@rules_python//python/runfiles"],
         main = script,
         python_version = "3.12",
         **kwargs

@@ -78,6 +78,13 @@ jobs:
             test \
             "${REMOTE_HEADER_ARGS[@]}" \
             //...
+          bazel \
+            --bazelrc="$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc" \
+            --bazelrc=.bazelrc \
+            test \
+            "${REMOTE_HEADER_ARGS[@]}" \
+            --//:qemu_system_target=riscv64 \
+            //:qemu_system_riscv64_qmp_smoke_test
   pre-commit:
     runs-on: ubuntu-latest
     steps:

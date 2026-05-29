@@ -1,6 +1,6 @@
-"""Repository for QEMU toolchains."""
+"""Repositories for QEMU toolchains."""
 
-_TOOLCHAINS_BUILD = """\
+_USER_TOOLCHAINS_BUILD = """\
 load("@rules_qemu//qemu:declare_toolchains.bzl", "declare_toolchains")
 
 package(default_visibility = ["//visibility:public"])
@@ -32,10 +32,46 @@ declare_toolchains(
 )
 """
 
+_SYSTEM_TOOLCHAINS_BUILD = """\
+load("@rules_qemu//qemu:declare_toolchains.bzl", "declare_system_toolchains")
+
+package(default_visibility = ["//visibility:public"])
+
+EXEC_PLATFORMS = [
+    ("linux", "x86_64"),
+    ("linux", "aarch64"),
+]
+
+SYSTEM_TOOLCHAINS = [
+{system_toolchains}
+]
+
+declare_system_toolchains(
+    exec_platforms = EXEC_PLATFORMS,
+    system_toolchains = SYSTEM_TOOLCHAINS,
+)
+"""
+
 def _qemu_toolchains_repository_impl(rctx):
-    rctx.file("BUILD.bazel", _TOOLCHAINS_BUILD)
+    rctx.file("BUILD.bazel", _USER_TOOLCHAINS_BUILD)
     return rctx.repo_metadata(reproducible = True)
 
 qemu_toolchains_repository = repository_rule(
     implementation = _qemu_toolchains_repository_impl,
+)
+
+def _qemu_system_toolchains_repository_impl(rctx):
+    rctx.file(
+        "BUILD.bazel",
+        _SYSTEM_TOOLCHAINS_BUILD.format(
+            system_toolchains = rctx.attr.system_toolchains,
+        ),
+    )
+    return rctx.repo_metadata(reproducible = True)
+
+qemu_system_toolchains_repository = repository_rule(
+    implementation = _qemu_system_toolchains_repository_impl,
+    attrs = {
+        "system_toolchains": attr.string(),
+    },
 )

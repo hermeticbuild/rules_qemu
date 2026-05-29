@@ -5,6 +5,11 @@ toolchain_type(
     visibility = ["//visibility:public"],
 )
 
+toolchain_type(
+    name = "system_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "qemu_binary",
     srcs = ["qemu_binary.bzl"],
@@ -22,10 +27,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "qemu_system_toolchain",
+    srcs = ["qemu_system_toolchain.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
     name = "declare_toolchains",
     srcs = ["declare_toolchains.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        ":qemu_system_toolchain",
         ":qemu_toolchain",
     ],
 )

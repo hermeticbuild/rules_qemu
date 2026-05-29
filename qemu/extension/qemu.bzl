@@ -1,8 +1,8 @@
-"""Module extension for QEMU user-mode prebuilts."""
+"""Module extension for QEMU prebuilts."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_toolchains_repository")
+load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_system_toolchains_repository", "qemu_toolchains_repository")
 
 QEMU_VERSION = "11.0.0"
 QEMU_PREBUILT_RELEASE = "11.0.0.0"
@@ -32,6 +32,39 @@ QEMU_RELEASES = {
     ("arm64", "x86_64"): "2ddef57cfc09794d4489849298011e64d792f4f5f318b3f07f18245b972e6863",
 }
 
+QEMU_IMG_RELEASES = {
+    "amd64": "38a6b0cb95abd76c7a510e3ffd2cc95ed6e04cec1056129a33f56f5cfb973f44",
+    "arm64": "2956116398dae790a0818ebe90a5d9bcb70bd1b929a5c07a5a0cb1e21e2ca889",
+}
+
+QEMU_SYSTEM_DATA_RELEASES = {
+    "amd64": "b83e187ca9c400610ee23af857128827eeaaf9160ba96c0adf5283332e289937",
+    "arm64": "e601e5c96473e44fcc48f4d6a27a47d4638f38737eb26a2f62b3b8409788f493",
+}
+
+QEMU_SYSTEM_RELEASES = {
+    ("amd64", "aarch64-softmmu"): "ae75f433e49bc0171b76d261f48f3faf3eb5fa904fa9c9e9a237c7bc1b6b9598",
+    ("amd64", "arm-softmmu"): "49548d9ea2139e02c05d45468f0160e4afad64960950620cbd1815ff4f2be6b7",
+    ("amd64", "i386-softmmu"): "3a2ae495051d0e3496ce57edae73991afdbe0657e70676d752647b2063ba2fe7",
+    ("amd64", "mips64-softmmu"): "ad19630d06aaf7883007e3affa0c88be698cd59b238a37df000841496df9cc13",
+    ("amd64", "ppc-softmmu"): "9356bd370b52d55d885508e501931c294959bb344f7cb511439346f249047cb3",
+    ("amd64", "ppc64-softmmu"): "64f48af65d17b450e9211d37aea4b71e4824c026bbb73dd7195d31ef815f7a26",
+    ("amd64", "riscv32-softmmu"): "09a71fd4470f983c030d76777679f34fa77be66e1eac23ac643c31bb0d33926e",
+    ("amd64", "riscv64-softmmu"): "a8464bd41c7bc802bf37c2c8fcf4aa7c31e4a7d56b17b4e0907631d543adeba6",
+    ("amd64", "s390x-softmmu"): "292d5ba02218b4ff94b00652058eb2d3185bbdd7cb20fc800f38ae023f666d8b",
+    ("amd64", "x86_64-softmmu"): "fa0f2ec2659c477e5c6c54ec01abbb03ca06f9692a1a0f1ba89640986b5a23e4",
+    ("arm64", "aarch64-softmmu"): "76b4a21e2af0c4e74a7f5ebc4191b0effd153b9eff9234836a3910ad69b2b6b4",
+    ("arm64", "arm-softmmu"): "d5227ad40604fb48be3802dd7eae7477fc9107edf9cc54f28c4f1ba367927b99",
+    ("arm64", "i386-softmmu"): "ccf692ab3b1a88d039594c1e3d952c5fc03c4f57acc1f58554d5019d7a946c8e",
+    ("arm64", "mips64-softmmu"): "daab9a3b9bd5b3af23046e5676b843b161439fcd6c1a217ab90ab6a2489341b8",
+    ("arm64", "ppc-softmmu"): "dae60c9d8382ea6ddf0ead71ff5c2f29e5dcd40fd989dfdcb8f553dd2d66ffbb",
+    ("arm64", "ppc64-softmmu"): "87af1a2151342bdc1748c1de3eb764736837b4c26a21a93f46e9a0fb9695b8c6",
+    ("arm64", "riscv32-softmmu"): "1c30e9a3d3541ebe83c070270f37dc5878fb0ab8a780120888c3c0c62f452d53",
+    ("arm64", "riscv64-softmmu"): "7450a1f58b41a825157b7768d2ab0aa1021220b5be8b975f3ebf6b90f408e71b",
+    ("arm64", "s390x-softmmu"): "cf7806e35dfe234a6e2be33d8aa7ba0834807fb24e1c5b6aadebb045052b1687",
+    ("arm64", "x86_64-softmmu"): "f274af7fe79ee5c635fa2493599189734c96594cb71b3a82ec09fd20f256ad2b",
+}
+
 _QEMU_BINARY_BUILD = """\
 package(default_visibility = ["//visibility:public"])
 
@@ -43,8 +76,82 @@ filegroup(
 )
 """
 
+_QEMU_IMG_BUILD = """\
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["bin/qemu-img"])
+
+filegroup(
+    name = "qemu-img",
+    srcs = ["bin/qemu-img"],
+)
+"""
+
+_QEMU_SYSTEM_BINARY_BUILD = """\
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["bin/{binary}"])
+
+filegroup(
+    name = "{binary}",
+    srcs = ["bin/{binary}"],
+)
+"""
+
+_QEMU_SYSTEM_DATA_BUILD = """\
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["share/qemu"])
+
+filegroup(
+    name = "qemu-system-data",
+    srcs = ["share/qemu"],
+)
+"""
+
+def _system_toolchain_entries(module_ctx):
+    entries = []
+    seen_toolchains = {}
+
+    for module in module_ctx.modules:
+        for tag in module.tags.system_toolchain:
+            target_settings = [str(target_setting) for target_setting in tag.target_settings]
+            key = (tag.system_target, tuple(target_settings))
+            if key in seen_toolchains:
+                previous = seen_toolchains[key]
+                if previous != (tag.machine, tag.target_arch):
+                    fail("QEMU system toolchain {} with target_settings {} declared with conflicting metadata".format(
+                        tag.system_target,
+                        target_settings,
+                    ))
+                continue
+
+            seen_toolchains[key] = (tag.machine, tag.target_arch)
+            name = "system_{}_{}".format(len(entries), tag.system_target.replace("-", "_"))
+            target_settings_repr = "\n".join([
+                '            "{}",'.format(target_setting)
+                for target_setting in target_settings
+            ])
+            entries.append("""    {{
+        "machine": "{machine}",
+        "name": "{name}",
+        "system_target": "{system_target}",
+        "target_arch": "{target_arch}",
+        "target_settings": [
+{target_settings}
+        ],
+    }},""".format(
+                machine = tag.machine,
+                name = name,
+                system_target = tag.system_target,
+                target_arch = tag.target_arch,
+                target_settings = target_settings_repr,
+            ))
+
+    return "\n".join(entries)
+
 def _qemu_impl(module_ctx):
-    """Implementation of the QEMU user-mode prebuilt module extension."""
+    """Implementation of the QEMU prebuilt module extension."""
 
     for (exec_arch, qemu_arch), sha256 in QEMU_RELEASES.items():
         platform = "linux-{}-{}".format(exec_arch, qemu_arch)
@@ -64,19 +171,91 @@ def _qemu_impl(module_ctx):
             )],
         )
 
+    for exec_arch, sha256 in QEMU_IMG_RELEASES.items():
+        http_archive(
+            name = "qemu_img_prebuilt_linux_{}".format(exec_arch),
+            build_file_content = _QEMU_IMG_BUILD,
+            sha256 = sha256,
+            urls = ["https://github.com/{repository}/releases/download/{release}/qemu-img-linux-{exec_arch}-{version}.tar.zst".format(
+                exec_arch = exec_arch,
+                release = QEMU_PREBUILT_RELEASE,
+                repository = QEMU_PREBUILT_REPOSITORY,
+                version = QEMU_PREBUILT_ARTIFACT_VERSION,
+            )],
+        )
+
+    for exec_arch, sha256 in QEMU_SYSTEM_DATA_RELEASES.items():
+        http_archive(
+            name = "qemu_system_data_prebuilt_linux_{}".format(exec_arch),
+            build_file_content = _QEMU_SYSTEM_DATA_BUILD,
+            sha256 = sha256,
+            urls = ["https://github.com/{repository}/releases/download/{release}/qemu-system-data-linux-{exec_arch}-{version}.tar.zst".format(
+                exec_arch = exec_arch,
+                release = QEMU_PREBUILT_RELEASE,
+                repository = QEMU_PREBUILT_REPOSITORY,
+                version = QEMU_PREBUILT_ARTIFACT_VERSION,
+            )],
+        )
+
+    for (exec_arch, system_target), sha256 in QEMU_SYSTEM_RELEASES.items():
+        binary = "qemu-system-{}".format(system_target[:-len("-softmmu")])
+        repo_system_target = system_target.replace("-", "_")
+        http_archive(
+            name = "qemu_system_bin_prebuilt_linux_{}_{}".format(exec_arch, repo_system_target),
+            build_file_content = _QEMU_SYSTEM_BINARY_BUILD.format(binary = binary),
+            sha256 = sha256,
+            urls = ["https://github.com/{repository}/releases/download/{release}/qemu-system-bin-linux-{exec_arch}-{system_target}-{version}.tar.zst".format(
+                exec_arch = exec_arch,
+                release = QEMU_PREBUILT_RELEASE,
+                repository = QEMU_PREBUILT_REPOSITORY,
+                system_target = system_target,
+                version = QEMU_PREBUILT_ARTIFACT_VERSION,
+            )],
+        )
+
     qemu_toolchains_repository(name = "qemu_user_toolchains")
+    qemu_system_toolchains_repository(
+        name = "qemu_system_toolchains",
+        system_toolchains = _system_toolchain_entries(module_ctx),
+    )
 
     metadata_kwargs = {}
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         metadata_kwargs["reproducible"] = True
 
     return module_ctx.extension_metadata(
-        root_module_direct_deps = ["qemu_user_toolchains"],
+        root_module_direct_deps = [
+            "qemu_system_toolchains",
+            "qemu_user_toolchains",
+        ],
         root_module_direct_dev_deps = [],
         **metadata_kwargs
     )
 
+_SYSTEM_TOOLCHAIN_TAG = tag_class(
+    attrs = {
+        "machine": attr.string(
+            doc = "Default machine hint for this QEMU system target. Defaults to rules_qemu's target metadata.",
+        ),
+        "system_target": attr.string(
+            mandatory = True,
+            doc = "QEMU system target, such as x86_64-softmmu, aarch64-softmmu, or riscv64-softmmu.",
+        ),
+        "target_arch": attr.string(
+            doc = "Guest architecture metadata exposed by QemuSystemToolchainInfo. Defaults to rules_qemu's target metadata.",
+        ),
+        "target_settings": attr.label_list(
+            mandatory = True,
+            doc = "User-defined config_setting labels passed to the generated toolchain target_settings.",
+        ),
+    },
+    doc = "Declares a QEMU system toolchain selected by user-owned target_settings.",
+)
+
 qemu = module_extension(
     implementation = _qemu_impl,
-    doc = "Extension for downloading static Linux user-mode QEMU prebuilts.",
+    doc = "Extension for downloading static Linux QEMU prebuilts.",
+    tag_classes = {
+        "system_toolchain": _SYSTEM_TOOLCHAIN_TAG,
+    },
 )

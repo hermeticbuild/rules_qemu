@@ -116,7 +116,7 @@ def declare_toolchains(*, exec_platforms, target_platforms):
 
 # buildifier: disable=unnamed-macro
 def declare_system_toolchains(*, exec_platforms, system_toolchains):
-    """Declares QEMU system-mode toolchains for exec platforms.
+    """Declares QEMU system-mode toolchains for exec and target use.
 
     Args:
         exec_platforms: Iterable of `(os, cpu)` pairs for the execution platform.
@@ -144,7 +144,7 @@ def declare_system_toolchains(*, exec_platforms, system_toolchains):
             target_arch = system_toolchain["target_arch"] or qemu_system.target_arch
 
             qemu_system_toolchain(
-                name = name + "_impl",
+                name = name,
                 machine = machine,
                 qemu_img = "@qemu_img_prebuilt_linux_{}//:qemu-img".format(repo_arch),
                 qemu_system = "@qemu_system_bin_prebuilt_linux_{}_{}//:{}".format(repo_arch, repo_system_target, qemu_system.binary),
@@ -155,12 +155,23 @@ def declare_system_toolchains(*, exec_platforms, system_toolchains):
             )
 
             native.toolchain(
-                name = name,
+                name = name + "_exec",
                 exec_compatible_with = [
                     "@platforms//os:{}".format(exec_os),
                     "@platforms//cpu:{}".format(exec_cpu),
                 ],
                 target_settings = system_toolchain["target_settings"],
-                toolchain = name + "_impl",
-                toolchain_type = "@rules_qemu//qemu:system_toolchain_type",
+                toolchain = name,
+                toolchain_type = "@rules_qemu//qemu:exec_toolchain_type",
+            )
+
+            native.toolchain(
+                name = name + "_target",
+                target_compatible_with = [
+                    "@platforms//os:{}".format(exec_os),
+                    "@platforms//cpu:{}".format(exec_cpu),
+                ],
+                target_settings = system_toolchain["target_settings"],
+                toolchain = name,
+                toolchain_type = "@rules_qemu//qemu:target_toolchain_type",
             )

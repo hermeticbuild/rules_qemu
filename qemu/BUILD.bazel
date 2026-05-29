@@ -6,7 +6,12 @@ toolchain_type(
 )
 
 toolchain_type(
-    name = "system_toolchain_type",
+    name = "exec_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+toolchain_type(
+    name = "target_toolchain_type",
     visibility = ["//visibility:public"],
 )
 

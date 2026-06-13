@@ -2,7 +2,7 @@
 
 load("@rules_python//python:py_test.bzl", "py_test")
 
-_QEMU_SYSTEM_TOOLCHAIN_TYPE = Label("@rules_qemu//qemu:system_toolchain_type")
+_QEMU_SYSTEM_TOOLCHAIN_TYPE = Label("@rules_qemu//qemu:exec_toolchain_type")
 
 def _qemu_system_target_impl(_ctx):
     return []

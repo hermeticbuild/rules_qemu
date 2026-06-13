@@ -109,10 +109,16 @@ Linux amd64 host.
 
 ## QEMU System Toolchains
 
-Rule authors can consume `@rules_qemu//qemu:system_toolchain_type` to access
-hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data. Consumers
-provide their own `config_setting` labels and declare which QEMU system target
-those settings select through the module extension.
+Rule authors can consume `@rules_qemu//qemu:exec_toolchain_type` to access
+hermetic `qemu-system-*`, `qemu-img`, and `share/qemu` runtime data selected
+for an execution action. Consumers provide their own `config_setting` labels
+and declare which QEMU system target those settings select through the module
+extension. This preserves explicit guest selection for tools that run QEMU.
+
+Each declared system toolchain is also registered as
+`@rules_qemu//qemu:target_toolchain_type`, using the same declared
+`target_settings`. Use that type when a target-side rule needs the selected
+guest toolchain rather than an execution action.
 
 ```starlark
 # MODULE.bazel
@@ -158,14 +164,14 @@ config_setting(
 ```starlark
 # BUILD.bazel
 def _my_rule_impl(ctx):
-    qemu = ctx.toolchains["@rules_qemu//qemu:system_toolchain_type"]
+    qemu = ctx.toolchains["@rules_qemu//qemu:exec_toolchain_type"]
     qemu_system = qemu.qemu_system
     qemu_img = qemu.qemu_img
     system_data_files = qemu.system_data_files
 
 my_rule = rule(
     implementation = _my_rule_impl,
-    toolchains = ["@rules_qemu//qemu:system_toolchain_type"],
+    toolchains = ["@rules_qemu//qemu:exec_toolchain_type"],
 )
 ```
 

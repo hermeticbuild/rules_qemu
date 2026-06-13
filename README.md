@@ -42,7 +42,7 @@ Current limitations:
 - Linux `qemu-system` and `qemu-img` toolchains are registered and exposed
   through providers for rule authors. There is no public VM-launching rule yet.
 - The default module extension currently downloads QEMU `11.0.0` prebuilts
-  from qemu-prebuilt release/artifact version `11.0.0.0`.
+  from qemu-prebuilt release/artifact version `11.0.0.1`.
 
 ## Installation
 

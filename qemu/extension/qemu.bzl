@@ -5,64 +5,64 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_system_toolchains_repository", "qemu_toolchains_repository")
 
 QEMU_VERSION = "11.0.0"
-QEMU_PREBUILT_RELEASE = "11.0.0.0"
-QEMU_PREBUILT_ARTIFACT_VERSION = "11.0.0.0"
+QEMU_PREBUILT_RELEASE = "11.0.0.1"
+QEMU_PREBUILT_ARTIFACT_VERSION = "11.0.0.1"
 QEMU_PREBUILT_REPOSITORY = "hermeticbuild/qemu-prebuilt"
 
 QEMU_RELEASES = {
-    ("amd64", "aarch64"): "15e4430509291373ecdd5891c463538fbb6e8f11acd88342b109f741d0f37089",
-    ("amd64", "arm"): "31e11ebd288b197f9c846f2eb6fce897d2fe57dee1e0e94b37c91f3116389ffc",
-    ("amd64", "i386"): "f1c7a6e9c40e23aedba0fff2db90c0fa12232c19bcd2f3d515842b9189ed4e9e",
-    ("amd64", "mips64"): "1d31baec7f9630d90d026de3b0f27821ce2db42211ca57af4f334cf4d6ad0ebe",
-    ("amd64", "ppc"): "6f814714b06b292ff3fcc61cfb563a7abff11a08a4bd33bba9ceabf3c796bc58",
-    ("amd64", "ppc64le"): "fbc637e430067871980ce50cabaef99c9f2b43c72db049e515d567d8378600d8",
-    ("amd64", "riscv32"): "b0ddec8ba3c15adab1926f24d936da34bedfcd265f5ab86d12ac97532e8c67f3",
-    ("amd64", "riscv64"): "df91fa4a2e42ed93f7e341025fae9608b3d79d7af974ffcad31a979eac4e84c3",
-    ("amd64", "s390x"): "c0702c8c4771efeb62715d81c2a4cbe6d5495f491f53de7d3fbadf9f8eccfad2",
-    ("amd64", "x86_64"): "663c75fded5dcb78758f47cd2c4bba1ed37c3a7bf21377f93f6d1b2a9ebefdf5",
-    ("arm64", "aarch64"): "2bd892f0daf464bbfff7d9dfdff207a5111ef63f604331f061d72eafbeb19f82",
-    ("arm64", "arm"): "804dcfab2af29422260e2e897a0aebc315ff8e704894855b4fa7cdeae2b6cd5d",
-    ("arm64", "i386"): "10da56d614893df2f554d5d26cc78bed1d3f5025677491a669281a60c0cbe687",
-    ("arm64", "mips64"): "24e1f6a708f2a91929848c6287e0c22715a669d46877640ead8074c6ca513331",
-    ("arm64", "ppc"): "c610891c5aeec0c21c2b2f2843a3ce810ea80f32abbdcf33447f7839e60b7371",
-    ("arm64", "ppc64le"): "d5cf08c2e8611e3c6a42d43a933ace17171e22cfd0e7f217e2310f810c226260",
-    ("arm64", "riscv32"): "469666b09d2f7145c3061e9e4433f296eb473633f5082915caf144ca2f5f614f",
-    ("arm64", "riscv64"): "960b3818a0ed97ce239af0431f87a019b1b13f6f89b77cb71624bf3ecec27282",
-    ("arm64", "s390x"): "c4d851a896563e57eba42643c96d7090f28675f13183e190655a2908db0d1e50",
-    ("arm64", "x86_64"): "2ddef57cfc09794d4489849298011e64d792f4f5f318b3f07f18245b972e6863",
+    ("amd64", "aarch64"): "cc3bf42da8f219cd314a7806053c73cca166bf14c288daf5b6105e66590a6dee",
+    ("amd64", "arm"): "7efa7a2dfb1a325dd514e16b67d38a6ead24b0bd5326ac0b1b8e8b6667c01698",
+    ("amd64", "i386"): "60cc85a81c4cea6072230211b0cc1742557a6d57f53638d03d8d3c655c366872",
+    ("amd64", "mips64"): "1f7d80af0b340b9ad7dec24e6ea01d7028a60e55ebfa1d7ac61a5418f4127621",
+    ("amd64", "ppc"): "cd90ee01c78cfe2065195076dc9f866cff91cc7aa39c07961eb4f82bbf9eec2a",
+    ("amd64", "ppc64le"): "21b1474ff3e9f05f2abca931659d70506000dd9413fb8662444f4ad739e3aa63",
+    ("amd64", "riscv32"): "1d52e2a9e710a39eb7a7e0a6ee1a4b4a964625512cc75ebcd1e1b18c8678367b",
+    ("amd64", "riscv64"): "b974c689b39e704696eed04500e9a2da4105f0b643e5119d01ef4826d6c7f0a0",
+    ("amd64", "s390x"): "6b0cc9d4afee60b5d5f960622aa77c926b80366f7454d027cf5c0c2e29712e86",
+    ("amd64", "x86_64"): "911d8c4dd7ca3780fe11adfa8db52a397e319b4feb46398b2e7488590c8040b6",
+    ("arm64", "aarch64"): "fa6a9e126306ab3f06f718473425d6094b7336cac7d21a9328a36af673e5d0a4",
+    ("arm64", "arm"): "56220cf250f745253c05f86d55dcccf2d4bcab61840e744a12bda781f735b035",
+    ("arm64", "i386"): "7400ebdfa9020e86847320d0f412906afb0d634e09938792b36340aa0ecf67be",
+    ("arm64", "mips64"): "1d9aeb6c36c2cb23ffd8169393dc7de83122664a2d508d27f56a3369c49e413a",
+    ("arm64", "ppc"): "0572c14bf243f4c05aaa0170fea140a4763db2495cede7ec41f705ebf5981e3e",
+    ("arm64", "ppc64le"): "ab0cb3154f6fa2d6ad91f300e41af82e35b6f9722d99d28ddb787f31dbe399a0",
+    ("arm64", "riscv32"): "1076332ae82dfac4102778c5aedbd45eed5f0386038812328855e7d802d148f4",
+    ("arm64", "riscv64"): "463545d675e5df5be0cc493c6822cd00c8708f8bff0b98e6d4e5ad1dcb169e39",
+    ("arm64", "s390x"): "d864b9e065e41495b593fd0d5038e000f7e32b1a47eff3ae6d8c54a8c238e76d",
+    ("arm64", "x86_64"): "58d31d097b72207702458bcd5927337e3428bad3f97d3075ff6c7b4ca13ecf50",
 }
 
 QEMU_IMG_RELEASES = {
-    "amd64": "38a6b0cb95abd76c7a510e3ffd2cc95ed6e04cec1056129a33f56f5cfb973f44",
-    "arm64": "2956116398dae790a0818ebe90a5d9bcb70bd1b929a5c07a5a0cb1e21e2ca889",
+    "amd64": "b58c4eb7e8e13a100dba36f4b871cfa7848fdbfece08bad8bbc9ec57cfeaca13",
+    "arm64": "af1709cfbd65fbe94e3e9fc7d8dca9daf2cee63864768aaece41ccf1f1cf9888",
 }
 
 QEMU_SYSTEM_DATA_RELEASES = {
-    "amd64": "b83e187ca9c400610ee23af857128827eeaaf9160ba96c0adf5283332e289937",
-    "arm64": "e601e5c96473e44fcc48f4d6a27a47d4638f38737eb26a2f62b3b8409788f493",
+    "amd64": "2525218347b647962bed5d0b37d3093e434b8c83e5fd78de910d43bec6154fff",
+    "arm64": "a5f02a4dfacba6405e3f8982ac22877a02553bec527afaffea3a941208345527",
 }
 
 QEMU_SYSTEM_RELEASES = {
-    ("amd64", "aarch64-softmmu"): "ae75f433e49bc0171b76d261f48f3faf3eb5fa904fa9c9e9a237c7bc1b6b9598",
-    ("amd64", "arm-softmmu"): "49548d9ea2139e02c05d45468f0160e4afad64960950620cbd1815ff4f2be6b7",
-    ("amd64", "i386-softmmu"): "3a2ae495051d0e3496ce57edae73991afdbe0657e70676d752647b2063ba2fe7",
-    ("amd64", "mips64-softmmu"): "ad19630d06aaf7883007e3affa0c88be698cd59b238a37df000841496df9cc13",
-    ("amd64", "ppc-softmmu"): "9356bd370b52d55d885508e501931c294959bb344f7cb511439346f249047cb3",
-    ("amd64", "ppc64-softmmu"): "64f48af65d17b450e9211d37aea4b71e4824c026bbb73dd7195d31ef815f7a26",
-    ("amd64", "riscv32-softmmu"): "09a71fd4470f983c030d76777679f34fa77be66e1eac23ac643c31bb0d33926e",
-    ("amd64", "riscv64-softmmu"): "a8464bd41c7bc802bf37c2c8fcf4aa7c31e4a7d56b17b4e0907631d543adeba6",
-    ("amd64", "s390x-softmmu"): "292d5ba02218b4ff94b00652058eb2d3185bbdd7cb20fc800f38ae023f666d8b",
-    ("amd64", "x86_64-softmmu"): "fa0f2ec2659c477e5c6c54ec01abbb03ca06f9692a1a0f1ba89640986b5a23e4",
-    ("arm64", "aarch64-softmmu"): "76b4a21e2af0c4e74a7f5ebc4191b0effd153b9eff9234836a3910ad69b2b6b4",
-    ("arm64", "arm-softmmu"): "d5227ad40604fb48be3802dd7eae7477fc9107edf9cc54f28c4f1ba367927b99",
-    ("arm64", "i386-softmmu"): "ccf692ab3b1a88d039594c1e3d952c5fc03c4f57acc1f58554d5019d7a946c8e",
-    ("arm64", "mips64-softmmu"): "daab9a3b9bd5b3af23046e5676b843b161439fcd6c1a217ab90ab6a2489341b8",
-    ("arm64", "ppc-softmmu"): "dae60c9d8382ea6ddf0ead71ff5c2f29e5dcd40fd989dfdcb8f553dd2d66ffbb",
-    ("arm64", "ppc64-softmmu"): "87af1a2151342bdc1748c1de3eb764736837b4c26a21a93f46e9a0fb9695b8c6",
-    ("arm64", "riscv32-softmmu"): "1c30e9a3d3541ebe83c070270f37dc5878fb0ab8a780120888c3c0c62f452d53",
-    ("arm64", "riscv64-softmmu"): "7450a1f58b41a825157b7768d2ab0aa1021220b5be8b975f3ebf6b90f408e71b",
-    ("arm64", "s390x-softmmu"): "cf7806e35dfe234a6e2be33d8aa7ba0834807fb24e1c5b6aadebb045052b1687",
-    ("arm64", "x86_64-softmmu"): "f274af7fe79ee5c635fa2493599189734c96594cb71b3a82ec09fd20f256ad2b",
+    ("amd64", "aarch64-softmmu"): "47385316ca599ad1cd11b212ee34ba39315231484ddf0aca735ee999509ece4c",
+    ("amd64", "arm-softmmu"): "3ece31b0bc998717fd432ebd5b158554edc691a8b9ea88e4b29729feebcfda08",
+    ("amd64", "i386-softmmu"): "e6bdd05def107dff47ace3ebed0424bb3ed7e00ea78151f957d941fa02206a86",
+    ("amd64", "mips64-softmmu"): "b7c1de2cc8ba1ab0742be4efd3a3b4de66260b2e393618fde31a614219841f84",
+    ("amd64", "ppc-softmmu"): "78af750d8515a460207a767732e1f016904f3e58077336f679a2ee1c87453e17",
+    ("amd64", "ppc64-softmmu"): "08331f7cad461cadb24457281ccb374b5d10824d141df990d894f02d1965da18",
+    ("amd64", "riscv32-softmmu"): "3f8f1872b6ed5b411ebc41c77f1db585407345da4616abfea2d3e305f1260622",
+    ("amd64", "riscv64-softmmu"): "a5a49730412ffa138b9c1703342efa7beb1bee0c57f8e7d249d7c8186b4dfb55",
+    ("amd64", "s390x-softmmu"): "67cc84cd91e594c6402bd7186b578750b36d3c6349f14960cd7f578ae8768c8f",
+    ("amd64", "x86_64-softmmu"): "b84d359893a0a1d565f368adb8290933ef9c99431acd98cff0fc4c9b35de3d22",
+    ("arm64", "aarch64-softmmu"): "24a231d21b4b580fb939f9689d254a5414433b23fa0cd4e64e90ce67fdb47e2c",
+    ("arm64", "arm-softmmu"): "e23de8f0ea440e5f98121dfe9725f7733feda27e8f7739ed50977b34bdea3f14",
+    ("arm64", "i386-softmmu"): "c9466af203c9696278065591ca565294fb2a87b3d04e85161dea0bf778339e8e",
+    ("arm64", "mips64-softmmu"): "77275e8ca8c45b49cb6ad4bfac1beb103620fb43a26077cbc07d5ad46017eecb",
+    ("arm64", "ppc-softmmu"): "d263c3cbebd0e05e94259dbbb36f6bbba14e736c64566d1da22ac06cd8668a4f",
+    ("arm64", "ppc64-softmmu"): "add0986c9a8af4d962b11281dfeb60b6c15c3c47a258187324c24ae3e277bb54",
+    ("arm64", "riscv32-softmmu"): "ed6410c0abe7283e983abbd8659a3b12886a9d555f68ce15ec3839f1179ffd1f",
+    ("arm64", "riscv64-softmmu"): "a666e381eaea1b84f88de615e683f169f065fe1eeced413c21078811aeb3244c",
+    ("arm64", "s390x-softmmu"): "2f9b547aab4c0e6b935c826e66d20d0191728b47869e5a14835af0e90bf66484",
+    ("arm64", "x86_64-softmmu"): "38996b463c6bd1c12c0c80c6fe47192c33a4c6cb88e7b97e1e4f67ecd41395f1",
 }
 
 _QEMU_BINARY_BUILD = """\

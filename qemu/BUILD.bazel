@@ -1,4 +1,22 @@
 load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+load("//qemu/private:qemu_prebuilts.bzl", "qemu_prebuilt_aliases")
+
+# Public labels for the prebuilt QEMU binaries, for consumers that drive QEMU
+# from their own test harness or genrule and therefore need a plain
+# `$(rootpath)`-able label instead of a toolchain provider.
+#
+# Each alias resolves the prebuilt for the *target* platform of the configured
+# dependency, so it is meant for the common case where the host both builds and
+# runs QEMU. Cross-compiling consumers should keep using the toolchains, which
+# select on the execution platform.
+[
+    alias(
+        name = prebuilt.name,
+        actual = "@qemu_prebuilts//:{}".format(prebuilt.name),
+        visibility = ["//visibility:public"],
+    )
+    for prebuilt in qemu_prebuilt_aliases()
+]
 
 toolchain_type(
     name = "toolchain_type",

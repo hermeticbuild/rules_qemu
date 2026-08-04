@@ -18,9 +18,17 @@ Add to your \`MODULE.bazel\` file:
 bazel_dep(name = "rules_qemu", version = "${TAG:1}")
 
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
-use_repo(qemu, "qemu_user_toolchains")
+use_repo(
+    qemu,
+    "qemu_prebuilts",
+    "qemu_system_toolchains",
+    "qemu_user_toolchains",
+)
 
-register_toolchains("@qemu_user_toolchains//:all")
+register_toolchains(
+    "@qemu_system_toolchains//:all",
+    "@qemu_user_toolchains//:all",
+)
 \`\`\`
 
 ## Using an archive override

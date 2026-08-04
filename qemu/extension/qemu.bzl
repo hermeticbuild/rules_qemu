@@ -2,6 +2,8 @@
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//qemu/private:qemu_prebuilts.bzl", "qemu_prebuilt_aliases")
+load("//qemu/private:qemu_prebuilts_repository.bzl", "qemu_prebuilts_repository")
 load("//qemu/private:qemu_toolchains_repository.bzl", "qemu_system_toolchains_repository", "qemu_toolchains_repository")
 
 QEMU_VERSION = "11.0.0"
@@ -150,14 +152,34 @@ def _system_toolchain_entries(module_ctx):
 
     return "\n".join(entries)
 
+def _check_prebuilt_aliases(declared_prebuilts):
+    """Fails if a public prebuilt alias points at a repository that is not declared.
+
+    Args:
+        declared_prebuilts: Set of the prebuilt repository names this extension
+            declares, represented as a dict with unused values.
+    """
+
+    for alias in qemu_prebuilt_aliases():
+        for repo in alias.repos.values():
+            if repo not in declared_prebuilts:
+                fail("@qemu_prebuilts//:{} would alias @{}, which the qemu extension does not declare".format(
+                    alias.name,
+                    repo,
+                ))
+
 def _qemu_impl(module_ctx):
     """Implementation of the QEMU prebuilt module extension."""
+
+    declared_prebuilts = {}
 
     for (exec_arch, qemu_arch), sha256 in QEMU_RELEASES.items():
         platform = "linux-{}-{}".format(exec_arch, qemu_arch)
         repo_platform = "linux_{}_{}".format(exec_arch, qemu_arch)
+        name = "qemu_user_prebuilt_{}".format(repo_platform)
+        declared_prebuilts[name] = None
         http_archive(
-            name = "qemu_user_prebuilt_{}".format(repo_platform),
+            name = name,
             build_file_content = _QEMU_BINARY_BUILD.format(
                 file = "qemu-user-{}".format(platform),
                 qemu_arch = qemu_arch,
@@ -172,8 +194,10 @@ def _qemu_impl(module_ctx):
         )
 
     for exec_arch, sha256 in QEMU_IMG_RELEASES.items():
+        name = "qemu_img_prebuilt_linux_{}".format(exec_arch)
+        declared_prebuilts[name] = None
         http_archive(
-            name = "qemu_img_prebuilt_linux_{}".format(exec_arch),
+            name = name,
             build_file_content = _QEMU_IMG_BUILD,
             sha256 = sha256,
             urls = ["https://github.com/{repository}/releases/download/{release}/qemu-img-linux-{exec_arch}-{version}.tar.zst".format(
@@ -185,8 +209,10 @@ def _qemu_impl(module_ctx):
         )
 
     for exec_arch, sha256 in QEMU_SYSTEM_DATA_RELEASES.items():
+        name = "qemu_system_data_prebuilt_linux_{}".format(exec_arch)
+        declared_prebuilts[name] = None
         http_archive(
-            name = "qemu_system_data_prebuilt_linux_{}".format(exec_arch),
+            name = name,
             build_file_content = _QEMU_SYSTEM_DATA_BUILD,
             sha256 = sha256,
             urls = ["https://github.com/{repository}/releases/download/{release}/qemu-system-data-linux-{exec_arch}-{version}.tar.zst".format(
@@ -200,8 +226,10 @@ def _qemu_impl(module_ctx):
     for (exec_arch, system_target), sha256 in QEMU_SYSTEM_RELEASES.items():
         binary = "qemu-system-{}".format(system_target[:-len("-softmmu")])
         repo_system_target = system_target.replace("-", "_")
+        name = "qemu_system_bin_prebuilt_linux_{}_{}".format(exec_arch, repo_system_target)
+        declared_prebuilts[name] = None
         http_archive(
-            name = "qemu_system_bin_prebuilt_linux_{}_{}".format(exec_arch, repo_system_target),
+            name = name,
             build_file_content = _QEMU_SYSTEM_BINARY_BUILD.format(binary = binary),
             sha256 = sha256,
             urls = ["https://github.com/{repository}/releases/download/{release}/qemu-system-bin-linux-{exec_arch}-{system_target}-{version}.tar.zst".format(
@@ -212,6 +240,9 @@ def _qemu_impl(module_ctx):
                 version = QEMU_PREBUILT_ARTIFACT_VERSION,
             )],
         )
+
+    _check_prebuilt_aliases(declared_prebuilts)
+    qemu_prebuilts_repository(name = "qemu_prebuilts")
 
     qemu_toolchains_repository(name = "qemu_user_toolchains")
     qemu_system_toolchains_repository(
@@ -225,6 +256,7 @@ def _qemu_impl(module_ctx):
 
     return module_ctx.extension_metadata(
         root_module_direct_deps = [
+            "qemu_prebuilts",
             "qemu_system_toolchains",
             "qemu_user_toolchains",
         ],

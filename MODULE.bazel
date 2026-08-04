@@ -23,6 +23,7 @@ python.toolchain(
 qemu = use_extension("//qemu/extension:qemu.bzl", "qemu")
 use_repo(
     qemu,
+    "qemu_prebuilts",
     "qemu_system_toolchains",
     "qemu_user_toolchains",
 )

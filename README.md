@@ -40,7 +40,10 @@ Current limitations:
 - Linux `qemu-user` toolchains are registered and exposed through
   `qemu_binary`.
 - Linux `qemu-system` and `qemu-img` toolchains are registered and exposed
-  through providers for rule authors. There is no public VM-launching rule yet.
+  through providers for rule authors. There is no public VM-launching rule yet;
+  harnesses that drive QEMU themselves can depend on the prebuilts directly
+  through the labels described in
+  [Prebuilt Binary Labels](#prebuilt-binary-labels).
 - The default module extension currently downloads QEMU `11.0.0` prebuilts
   from qemu-prebuilt release/artifact version `11.0.0.1`.
 
@@ -55,6 +58,7 @@ bazel_dep(name = "rules_qemu", version = "...")
 qemu = use_extension("@rules_qemu//qemu/extension:qemu.bzl", "qemu")
 use_repo(
     qemu,
+    "qemu_prebuilts",
     "qemu_system_toolchains",
     "qemu_user_toolchains",
 )
@@ -64,6 +68,8 @@ register_toolchains(
     "@qemu_user_toolchains//:all",
 )
 ```
+
+`bazel mod tidy` keeps that `use_repo()` list up to date.
 
 ## Running A Binary Under QEMU
 
@@ -185,6 +191,74 @@ The corresponding `QemuSystemToolchainInfo` provider is available from
 locating `-L`, and target metadata such as `machine`,
 `system_target`, and `target_arch`.
 
+## Prebuilt Binary Labels
+
+A harness that drives QEMU itself, such as a test binary that shells out to
+`qemu-system-x86_64` or a `genrule` that calls `qemu-img`, needs a plain label
+it can pass to `$(rootpath)` or `$(location)`. A toolchain provider cannot be
+expanded that way, so every prebuilt is also reachable through a stable public
+label in `@rules_qemu//qemu`:
+
+- `@rules_qemu//qemu:qemu-img`, the `qemu-img` executable.
+- `@rules_qemu//qemu:qemu-system-data`, the `share/qemu` runtime data
+  directory.
+- `@rules_qemu//qemu:qemu-system-<target>`, a `qemu-system-*` executable, for
+  `aarch64`, `arm`, `i386`, `mips64`, `ppc`, `ppc64`, `riscv32`, `riscv64`,
+  `s390x`, and `x86_64`.
+- `@rules_qemu//qemu:qemu-<target>`, a `qemu-user` executable, for `aarch64`,
+  `arm`, `i386`, `mips64`, `ppc`, `ppc64le`, `riscv32`, `riscv64`, `s390x`, and
+  `x86_64`.
+
+```starlark
+sh_test(
+    name = "vm_harness_test",
+    srcs = ["vm_harness.sh"],
+    data = [
+        "@rules_qemu//qemu:qemu-img",
+        "@rules_qemu//qemu:qemu-system-data",
+        "@rules_qemu//qemu:qemu-system-x86_64",
+    ],
+    env = {
+        "QEMU_IMG": "$(rootpath @rules_qemu//qemu:qemu-img)",
+        "QEMU_SYSTEM_DATA": "$(rootpath @rules_qemu//qemu:qemu-system-data)",
+        "QEMU_SYSTEM_X86_64": "$(rootpath @rules_qemu//qemu:qemu-system-x86_64)",
+    },
+)
+```
+
+`qemu-system-data` is a directory artifact holding the whole `share/qemu` tree,
+which is what `qemu-system-*` expects behind `-L`.
+
+Each label is an `alias` into the generated `qemu_prebuilts` repository, which
+picks the prebuilt for the current architecture with a `select()` over
+`@platforms//os` and `@platforms//cpu`. Only the labels above are public API;
+the repositories holding the individual prebuilts stay implementation details
+and may be renamed by any release. Building through one of these labels
+downloads only the archive the `select()` resolves to; an unconfigured
+`bazel query` over them still fetches both architectures.
+
+The labels resolve without any `use_repo()` line, because `rules_qemu` imports
+the hub repository on its own behalf. Bazel's `use_repo()` consistency check
+still expects a root module that uses the extension to list every repository the
+extension reports, so keep `qemu_prebuilts` in your `use_repo()` call (or run
+`bazel mod tidy`) to build without warnings.
+
+### Execution Versus Target Platform
+
+A `select()` inside an `alias` is evaluated in the _target_ configuration of
+whatever depends on it, while the QEMU toolchains select their prebuilts by
+_execution_ platform. These labels are therefore intended for the common case
+where the same Linux host both builds and runs QEMU, so that the execution and
+target platform agree.
+
+If a target that depends on one of these labels is configured for a different
+target platform, the `select()` follows that platform rather than the executor:
+for a non-Linux or non-x86*64/aarch64 target platform it fails with a
+`no_match_error` instead of silently picking a prebuilt that cannot run. Rules
+that need the prebuilt for the platform an action \_executes* on should keep
+using `@rules_qemu//qemu:exec_toolchain_type`, which resolves through
+`exec_compatible_with` and depends on the binaries with `cfg = "exec"`.
+
 ## Smoke Test Example
 
 This repository includes an external-consumer smoke test in `e2e/smoke`.
@@ -199,7 +273,8 @@ multiple target platforms with the published LLVM toolchain, runs them through
 `qemu_binary`, and starts `qemu-system` through QMP with the hermetic
 `share/qemu` data path. It also starts a `qemu-system-riscv64` QMP smoke target
 from the default host-configured test package to exercise explicit guest
-selection.
+selection, and runs an `sh_test` that reaches the prebuilts through the public
+`@rules_qemu//qemu` labels instead of a toolchain.
 
 ## Roadmap
 

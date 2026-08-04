@@ -31,6 +31,7 @@ qemu.system_toolchain(
 )
 use_repo(
     qemu,
+    "qemu_prebuilts",
     "qemu_system_toolchains",
     "qemu_user_toolchains",
 )

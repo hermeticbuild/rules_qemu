@@ -65,6 +65,23 @@ config_setting(
     for name in SMOKE_PLATFORMS
 ]
 
+# Uses the public prebuilt labels instead of a toolchain, the way a downstream
+# test harness that shells out to QEMU does.
+sh_test(
+    name = "qemu_prebuilt_labels_test",
+    srcs = ["test_qemu_prebuilt_labels.sh"],
+    data = [
+        "@rules_qemu//qemu:qemu-img",
+        "@rules_qemu//qemu:qemu-system-data",
+        "@rules_qemu//qemu:qemu-system-x86_64",
+    ],
+    env = {
+        "QEMU_IMG": "$(rootpath @rules_qemu//qemu:qemu-img)",
+        "QEMU_SYSTEM_DATA": "$(rootpath @rules_qemu//qemu:qemu-system-data)",
+        "QEMU_SYSTEM_X86_64": "$(rootpath @rules_qemu//qemu:qemu-system-x86_64)",
+    },
+)
+
 qemu_binary(
     name = "hello_x86_64",
     testonly = True,
@@ -113,6 +130,7 @@ test_suite(
         ":hello_{}_qemu_test".format(name)
         for name in SMOKE_PLATFORMS
     ] + [
+        ":qemu_prebuilt_labels_test",
         ":qemu_system_qmp_smoke_test",
         ":qemu_system_riscv64_qmp_smoke_test",
         ":qemu_system_x86_boot_smoke_test",
